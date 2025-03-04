@@ -1,0 +1,374 @@
+/* 全局样式 - 苹果风格 */
+body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #1d1d1f;
+    background-color: #ffffff;
+    line-height: 1.5;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: #1d1d1f;
+    letter-spacing: -0.015em;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* 容器样式 */
+.container {
+    max-width: 1200px;
+    padding: 0 20px;
+}
+
+/* 头部容器样式 - 更窄的宽度 */
+header .container {
+    max-width: 800px;
+}
+
+/* 头部样式 - 马卡龙黄色主题 */
+header {
+    background-color: #FFE66D !important; /* 马卡龙黄色 */
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 2rem 0 !important; /* 增加上下内边距，让标题距离顶部更远 */
+}
+
+header h1 {
+    color: #1d1d1f;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0;
+    margin-top: 1rem; /* 增加标题与顶部的距离 */
+}
+
+header p {
+    color: #86868b;
+    font-size: 0.9rem;
+}
+
+/* 菜单项卡片样式 - 苹果风格 */
+.menu-item {
+    transition: all 0.3s ease;
+    margin-bottom: 30px;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background-color: #fff;
+}
+
+.menu-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.menu-item img {
+    height: 220px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.menu-item .card-body {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background-color: #fff;
+}
+
+.menu-item .card-footer {
+    background-color: #fff;
+    border-top: none;
+    padding: 0 1.5rem 1.5rem;
+    margin-top: auto;
+}
+
+/* 价格标签样式 */
+.price {
+    font-weight: 600;
+    color: #1d1d1f;
+    font-size: 1.1rem;
+}
+
+/* 订单侧边栏样式 - 苹果风格 */
+#order.bg-light {
+    background-color: #f5f5f7 !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem !important;
+}
+
+/* 订单项样式 */
+.order-item {
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* 数量控制按钮 - 苹果风格 */
+.quantity-control {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-control button {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 50%;
+    color: #1d1d1f;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.quantity-control button:hover {
+    background-color: #f5f5f7;
+    transform: scale(1.05);
+}
+
+.quantity-control span {
+    width: 30px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* 按钮样式 - 苹果风格 */
+.btn-primary {
+    background-color: #0071e3;
+    border-color: #0071e3;
+    border-radius: 980px;
+    padding: 8px 20px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    color: #fff;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #0077ed;
+    border-color: #0077ed;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 113, 227, 0.3);
+}
+
+.btn-secondary {
+    background-color: #f5f5f7;
+    border-color: #f5f5f7;
+    color: #1d1d1f;
+    border-radius: 980px;
+    padding: 8px 20px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #e8e8ed;
+    border-color: #e8e8ed;
+    color: #1d1d1f;
+}
+
+.btn-outline-danger {
+    color: #ff3b30;
+    border-color: rgba(255, 59, 48, 0.5);
+    border-radius: 980px;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+}
+
+.btn-outline-danger:hover {
+    background-color: rgba(255, 59, 48, 0.1);
+    color: #ff3b30;
+    border-color: rgba(255, 59, 48, 0.7);
+}
+
+/* 表单控件样式 */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 12px 15px;
+    font-size: 0.95rem;
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+}
+
+/* 卡片内容样式优化 */
+.card-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #1d1d1f;
+    font-weight: 600;
+}
+
+.card-text {
+    color: #86868b;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+/* 页脚样式更新 - 苹果风格 */
+footer {
+    background-color: #f5f5f7 !important;
+    color: #86868b !important;
+    padding: 2rem 0 !important;
+    font-size: 0.9rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+footer h5 {
+    color: #1d1d1f;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+footer p {
+    margin-bottom: 0.5rem;
+}
+
+/* 模态框样式 - 苹果风格 */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-header .modal-title {
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+}
+
+/* 成功模态框 */
+.modal-header.bg-success {
+    background-color: #34c759 !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .menu-item img {
+        height: 180px;
+    }
+    
+    #order {
+        position: static !important;
+        margin-top: 20px;
+    }
+    
+    .container {
+        padding: 0 15px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* 后台管理样式 */
+.admin-panel {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-bottom: 20px;
+}
+
+.order-card {
+    margin-bottom: 15px;
+    border-left: 4px solid #0071e3;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+    background-color: #fff;
+    padding: 1rem;
+}
+
+.order-card:hover {
+    transform: translateX(3px);
+}
+
+.order-card.new {
+    border-left-color: #34c759;
+}
+
+.order-card.processing {
+    border-left-color: #ff9500;
+}
+
+.order-card.completed {
+    border-left-color: #8e8e93;
+}
+
+.order-card.cancelled {
+    border-left-color: #ff3b30;
+}
+
+/* 表格样式 */
+.table {
+    color: #1d1d1f;
+}
+
+.table thead th {
+    font-weight: 600;
+    color: #1d1d1f;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
