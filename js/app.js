@@ -19,19 +19,15 @@ function loadMenu() {
     // 清空容器
     menuContainer.innerHTML = '';
     
-    // 加载菜单说明文字 - 优化加载速度
-    const savedMenuDescription = localStorage.getItem('menuDescription');
-    // 提前设置样式，避免重排
-    menuDescriptionContainer.style.whiteSpace = 'pre-line';
-    menuDescriptionContainer.innerHTML = savedMenuDescription || '欢迎光临哥村卤肉饭，我们提供正宗台式卤肉饭，选用上等食材，每日新鲜制作。';
+    // 加载菜单说明文字
+    firebaseData.menu.getDescription(function(description) {
+        // 提前设置样式，避免重排
+        menuDescriptionContainer.style.whiteSpace = 'pre-line';
+        menuDescriptionContainer.innerHTML = description || '欢迎光临哥村卤肉饭，我们提供正宗台式卤肉饭，选用上等食材，每日新鲜制作。';
+    });
 
-    
-    // 从localStorage获取菜单数据，如果没有则使用默认菜单
-    let displayMenuItems = menuItems;
-    const savedMenuItems = localStorage.getItem('menuItems');
-    if (savedMenuItems) {
-        displayMenuItems = JSON.parse(savedMenuItems);
-    }
+    // 从Firebase获取菜单数据
+    firebaseData.menu.getItems(function(displayMenuItems) {
     
     // 遍历菜单项并创建卡片
     displayMenuItems.forEach(item => {
@@ -64,15 +60,33 @@ function loadMenu() {
 
 // 添加到购物车函数
 function addToCart(itemId) {
-    // 从localStorage获取最新菜单数据，如果没有则使用默认菜单
-    let currentMenuItems = menuItems;
-    const savedMenuItems = localStorage.getItem('menuItems');
-    if (savedMenuItems) {
-        currentMenuItems = JSON.parse(savedMenuItems);
-    }
-    
-    // 查找菜单项
-    const menuItem = currentMenuItems.find(item => item.id === itemId);
+    // 从Firebase获取最新菜单数据
+    firebaseData.menu.getItems(function(currentMenuItems) {
+        // 查找菜单项
+        const menuItem = currentMenuItems.find(item => item.id === itemId);
+        
+        if (!menuItem) return;
+        
+        // 检查购物车中是否已有该商品
+        const existingItem = cart.find(item => item.id === itemId);
+        
+        if (existingItem) {
+            // 如果已存在，增加数量
+            existingItem.quantity += 1;
+        } else {
+            // 如果不存在，添加到购物车
+            cart.push({
+                id: menuItem.id,
+                name: menuItem.name,
+                price: menuItem.price,
+                quantity: 1
+            });
+        }
+        
+        // 更新购物车显示
+        updateCartDisplay();
+    });
+    return; // 提前返回，因为后续代码已在回调函数中处理
     
     if (!menuItem) return;
     
@@ -234,28 +248,31 @@ function submitOrder() {
         createdAt: new Date().toISOString()
     };
     
-    // 保存订单
-    orders.push(order);
-    saveOrdersToLocalStorage();
-    
-    // 显示订单成功模态框
-    document.getElementById('order-id').textContent = order.id;
-    
-    // 获取后台设置的取餐时间
-    const pickupTime = localStorage.getItem('pickupTimeSetting') || '30';
-    document.getElementById('pickup-time').textContent = `${pickupTime}分钟后`;
-    
-    const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
-    orderModal.hide();
-    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-    successModal.show();
-    
-    // 清空购物车
-    cart = [];
-    updateCartDisplay();
-    
-    // 重置表单
-    document.getElementById('order-form').reset();
+    // 使用Firebase保存订单
+    firebaseData.orders.save(order, function(success, orderId) {
+        if (success) {
+            // 显示订单成功模态框
+            document.getElementById('order-id').textContent = orderId || order.id;
+            
+            // 获取后台设置的取餐时间
+            const pickupTime = localStorage.getItem('pickupTimeSetting') || '30';
+            document.getElementById('pickup-time').textContent = `${pickupTime}分钟后`;
+            
+            const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
+            if (orderModal) orderModal.hide();
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+            
+            // 清空购物车
+            cart = [];
+            updateCartDisplay();
+            
+            // 重置表单
+            document.getElementById('order-form').reset();
+        } else {
+            alert('订单提交失败，请重试');
+        }
+    });
 }
 
 // 生成订单ID

@@ -32,15 +32,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('save-menu-item').addEventListener('click', saveMenuItem);
 });
 
-// 从本地存储加载订单
-function loadOrders() {
-    const savedOrders = localStorage.getItem('orders');
-    if (savedOrders) {
-        orders = JSON.parse(savedOrders);
+// 从Firebase加载订单
+function loadOrders(filter = 'all') {
+    firebaseData.orders.getAll(function(ordersList) {
+        orders = ordersList;
         // 按创建时间倒序排列，最新的订单显示在前面
         orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        displayOrders(orders);
-    }
+        
+        // 根据筛选条件过滤订单
+        if (filter !== 'all') {
+            const filteredOrders = orders.filter(order => order.status === filter);
+            displayOrders(filteredOrders);
+        } else {
+            displayOrders(orders);
+        }
+    });
 }
 
 // 显示订单列表
@@ -178,19 +184,22 @@ function filterOrders() {
 
 // 更新订单状态
 function updateOrderStatus(orderId, newStatus) {
-    // 查找订单
-    const orderIndex = orders.findIndex(order => order.id === orderId);
-    
-    if (orderIndex !== -1) {
-        // 更新状态
-        orders[orderIndex].status = newStatus;
-        
-        // 保存到本地存储
-        localStorage.setItem('orders', JSON.stringify(orders));
-        
-        // 重新显示订单
-        filterOrders();
-    }
+    // 使用Firebase更新订单状态
+    firebaseData.orders.updateStatus(orderId, newStatus, function(success) {
+        if (success) {
+            // 查找本地订单并更新状态（用于UI更新）
+            const orderIndex = orders.findIndex(order => order.id === orderId);
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = newStatus;
+            }
+            
+            // 重新显示订单
+            filterOrders();
+        } else {
+            alert('更新订单状态失败，请重试');
+        }
+    });
+}
 }
 
 // 保存默认取餐时间设置
@@ -209,19 +218,12 @@ function loadPickupTimeSetting() {
 
 // 加载菜单数据
 function loadMenuItems() {
-    // 从localStorage获取菜单数据
-    const savedMenuItems = localStorage.getItem('menuItems');
-    if (savedMenuItems) {
-        menuItemsList = JSON.parse(savedMenuItems);
-    } else {
-        // 如果localStorage中没有菜单数据，使用默认菜单数据
-        menuItemsList = [...menuItems];
-        // 保存到localStorage
-        saveMenuItemsToLocalStorage();
-    }
-    
-    // 显示菜单列表
-    displayMenuItems();
+    // 从Firebase获取菜单数据
+    firebaseData.menu.getItems(function(items) {
+        menuItemsList = items;
+        // 显示菜单列表
+        displayMenuItems();
+    });
 }
 
 // 显示菜单列表
@@ -321,12 +323,14 @@ function saveMenuItem() {
         return;
     }
     
+    let menuItem;
+    
     if (itemId) {
         // 编辑现有菜单项
         const index = menuItemsList.findIndex(item => item.id === parseInt(itemId));
         
         if (index !== -1) {
-            menuItemsList[index] = {
+            menuItem = {
                 ...menuItemsList[index],
                 name,
                 description,
@@ -339,25 +343,29 @@ function saveMenuItem() {
         // 添加新菜单项
         const newId = generateMenuItemId();
         
-        menuItemsList.push({
+        menuItem = {
             id: newId,
             name,
             description,
             price,
             image,
             category
-        });
+        };
     }
     
-    // 保存到localStorage
-    saveMenuItemsToLocalStorage();
-    
-    // 重新显示菜单列表
-    displayMenuItems();
-    
-    // 关闭模态框
-    const menuItemModal = bootstrap.Modal.getInstance(document.getElementById('menuItemModal'));
-    menuItemModal.hide();
+    // 保存到Firebase
+    firebaseData.menu.saveItem(menuItem, function(success) {
+        if (success) {
+            // 重新加载菜单列表
+            loadMenuItems();
+            
+            // 关闭模态框
+            const menuItemModal = bootstrap.Modal.getInstance(document.getElementById('menuItemModal'));
+            menuItemModal.hide();
+        } else {
+            alert('保存菜单项失败，请重试');
+        }
+    });
 }
 
 // 删除菜单项
@@ -401,19 +409,21 @@ function saveMenuItemsToLocalStorage() {
 
 // 加载菜单说明文字
 function loadMenuDescription() {
-    const savedMenuDescription = localStorage.getItem('menuDescription');
-    if (savedMenuDescription) {
-        document.getElementById('menu-description-text').value = savedMenuDescription;
-    } else {
-        document.getElementById('menu-description-text').value = '欢迎光临哥村卤肉饭，我们提供正宗台式卤肉饭，选用上等食材，每日新鲜制作。';
-    }
+    firebaseData.menu.getDescription(function(description) {
+        document.getElementById('menu-description-text').value = description || '欢迎光临哥村卤肉饭，我们提供正宗台式卤肉饭，选用上等食材，每日新鲜制作。';
+    });
 }
 
 // 保存菜单说明文字
 function saveMenuDescription() {
     const menuDescription = document.getElementById('menu-description-text').value;
-    localStorage.setItem('menuDescription', menuDescription);
-    alert('菜单说明文字已保存');
+    firebaseData.menu.saveDescription(menuDescription, function(success) {
+        if (success) {
+            alert('菜单说明文字已保存');
+        } else {
+            alert('菜单说明文字保存失败，请重试');
+        }
+    });
 }
 
 // 绑定数据迁移按钮事件
