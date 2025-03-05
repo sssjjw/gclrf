@@ -91,20 +91,30 @@ const firebaseData = {
       return ordersRef; // 返回引用以便后续可以取消监听
     },
     // 保存订单
-    save: function(order, callback) {
+    save: function(order, callback, retryCount = 0) {
+      const maxRetries = 3;
+      const retryDelay = 1500;
+
       // 检查用户是否已登录
       const currentUser = firebase.auth().currentUser;
       if (!currentUser) {
-        console.error("保存订单失败: 用户未登录");
+        console.log("用户未登录，正在尝试匿名登录...");
         // 尝试重新登录
         firebase.auth().signInAnonymously()
           .then(() => {
-            // 登录成功后重试保存订单
-            setTimeout(() => this.save(order, callback), 1000);
+            console.log("匿名登录成功，等待认证状态更新...");
+            // 增加延迟以确保认证状态完全更新
+            setTimeout(() => this.save(order, callback, retryCount), retryDelay);
           })
           .catch((error) => {
             console.error("匿名登录失败:", error);
-            callback(false);
+            if (retryCount < maxRetries) {
+              console.log(`登录重试 ${retryCount + 1}/${maxRetries}...`);
+              setTimeout(() => this.save(order, callback, retryCount + 1), retryDelay);
+            } else {
+              console.error("达到最大重试次数，保存订单失败");
+              callback(false);
+            }
           });
         return;
       }
@@ -112,11 +122,18 @@ const firebaseData = {
       const orderRef = database.ref('orders/' + order.id);
       orderRef.set(order)
         .then(() => {
+          console.log("订单保存成功:", order.id);
           callback(true, order.id);
         })
         .catch((error) => {
           console.error("保存订单失败:", error);
-          callback(false);
+          if (retryCount < maxRetries) {
+            console.log(`保存重试 ${retryCount + 1}/${maxRetries}...`);
+            setTimeout(() => this.save(order, callback, retryCount + 1), retryDelay);
+          } else {
+            console.error("达到最大重试次数，保存订单失败");
+            callback(false);
+          }
         });
     },
     // 更新订单状态
