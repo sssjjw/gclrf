@@ -27,33 +27,38 @@ function loadMenu() {
     });
 
     // 从Firebase获取菜单数据
-    firebaseData.menu.getItems(function(displayMenuItems) {
-    
-    // 遍历菜单项并创建卡片
-    displayMenuItems.forEach(item => {
-        const menuItemElement = document.createElement('div');
-        menuItemElement.className = 'col-md-6 col-lg-4';
-        menuItemElement.innerHTML = `
-            <div class="card menu-item">
-                <img src="${item.image}" class="card-img-top" alt="${item.name}">
-                <div class="card-body">
-                    <h5 class="card-title">${item.name}</h5>
-                    <p class="card-text" style="white-space: pre-line;">${item.description}</p>
-                    <p class="price">€${item.price.toFixed(2)}</p>
+    firebaseData.menu.getItems(function(menuItems) {
+        if (!menuItems || menuItems.length === 0) {
+            menuContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">暂无菜单数据</p></div>';
+            return;
+        }
+        
+        // 遍历菜单项并创建卡片
+        menuItems.forEach(item => {
+            const menuItemElement = document.createElement('div');
+            menuItemElement.className = 'col-md-6 col-lg-4';
+            menuItemElement.innerHTML = `
+                <div class="card menu-item">
+                    <img src="${item.image}" class="card-img-top" alt="${item.name}">
+                    <div class="card-body">
+                        <h5 class="card-title">${item.name}</h5>
+                        <p class="card-text" style="white-space: pre-line;">${item.description}</p>
+                        <p class="price">€${item.price.toFixed(2)}</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary add-to-cart w-100" data-id="${item.id}">添加到购物车</button>
+                    </div>
                 </div>
-                <div class="card-footer">
-                    <button class="btn btn-primary add-to-cart w-100" data-id="${item.id}">添加到购物车</button>
-                </div>
-            </div>
-        `;
-        menuContainer.appendChild(menuItemElement);
-    });
-    
-    // 绑定添加到购物车按钮事件
-    document.querySelectorAll('.add-to-cart').forEach(button => {
-        button.addEventListener('click', function() {
-            const itemId = parseInt(this.getAttribute('data-id'));
-            addToCart(itemId);
+            `;
+            menuContainer.appendChild(menuItemElement);
+        });
+        
+        // 绑定添加到购物车按钮事件
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = parseInt(this.getAttribute('data-id'));
+                addToCart(itemId);
+            });
         });
     });
 }
