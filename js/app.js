@@ -285,9 +285,7 @@ async function submitOrder() {
                 // 显示订单成功模态框
                 document.getElementById('order-id').textContent = orderId || order.id;
                 
-                // 获取后台设置的取餐时间
-                const pickupTime = localStorage.getItem('pickupTimeSetting') || '30';
-                document.getElementById('pickup-time').textContent = `${pickupTime}分钟后`;
+                // 移除动态设置取餐时间的代码，使用HTML中固定的文字
                 
                 const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
                 if (orderModal) orderModal.hide();
