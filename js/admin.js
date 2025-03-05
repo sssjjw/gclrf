@@ -30,6 +30,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 绑定保存菜单项按钮事件
     document.getElementById('save-menu-item').addEventListener('click', saveMenuItem);
+    
+    // 绑定数据迁移按钮事件
+    document.getElementById('migrate-data').addEventListener('click', function() {
+        if (confirm('确定要将本地数据迁移到Firebase吗？这将覆盖Firebase中的现有数据。')) {
+            firebaseData.migrate.fromLocalStorage(function(success) {
+                if (success) {
+                    alert('数据迁移成功！');
+                    loadMenuDescription();
+                    loadMenuItems();
+                    loadOrders();
+                } else {
+                    alert('数据迁移失败，请查看控制台错误信息。');
+                }
+            });
+        }
+    });
 });
 
 // 从Firebase加载订单
@@ -377,14 +393,15 @@ function deleteMenuItem(itemId) {
         return;
     }
     
-    // 从数组中移除菜单项
-    menuItemsList = menuItemsList.filter(item => parseInt(item.id) !== itemId);
-    
-    // 保存到localStorage
-    saveMenuItemsToLocalStorage();
-    
-    // 重新显示菜单列表
-    displayMenuItems();
+    // 从Firebase删除菜单项
+    firebaseData.menu.deleteItem(itemId, function(success) {
+        if (success) {
+            // 重新加载菜单列表
+            loadMenuItems();
+        } else {
+            alert('删除菜单项失败，请重试');
+        }
+    });
 }
 
 // 生成菜单项ID
@@ -424,19 +441,3 @@ function saveMenuDescription() {
         }
     });
 }
-
-// 绑定数据迁移按钮事件
-document.getElementById('migrate-data').addEventListener('click', function() {
-    if (confirm('确定要将本地数据迁移到Firebase吗？这将覆盖Firebase中的现有数据。')) {
-        firebaseData.migrate.fromLocalStorage(function(success) {
-            if (success) {
-                alert('数据迁移成功！');
-                loadMenuDescription();
-                loadMenuItems();
-                loadOrders();
-            } else {
-                alert('数据迁移失败，请查看控制台错误信息。');
-            }
-        });
-    }
-});
