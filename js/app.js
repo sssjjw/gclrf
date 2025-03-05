@@ -223,8 +223,42 @@ function removeFromCart(itemId) {
     updateCartDisplay();
 }
 
+// 生成订单ID
+function generateOrderId() {
+    const today = new Date();
+    const dateStr = today.getFullYear() +
+        String(today.getMonth() + 1).padStart(2, '0') +
+        String(today.getDate()).padStart(2, '0');
+    
+    // 从Firebase获取今天的所有订单
+    return new Promise((resolve) => {
+        firebaseData.orders.getAll(function(allOrders) {
+            // 过滤出今天的订单
+            const todayOrders = allOrders.filter(order => {
+                const orderDate = new Date(order.createdAt);
+                return orderDate.toDateString() === today.toDateString();
+            });
+            
+            // 找出今天最大的序号
+            let maxNumber = 0;
+            todayOrders.forEach(order => {
+                if (order.id.startsWith(dateStr)) {
+                    const orderNumber = parseInt(order.id.slice(-3));
+                    if (orderNumber > maxNumber) {
+                        maxNumber = orderNumber;
+                    }
+                }
+            });
+            
+            // 生成新的序号
+            const newNumber = (maxNumber + 1).toString().padStart(3, '0');
+            resolve(`${dateStr}${newNumber}`);
+        });
+    });
+}
+
 // 提交订单函数
-function submitOrder() {
+async function submitOrder() {
     // 获取表单数据
     const groupNickname = document.getElementById('group-nickname').value;
     
@@ -237,76 +271,55 @@ function submitOrder() {
     // 计算总价
     const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
-    // 创建订单对象
-    const order = {
-        id: generateOrderId(),
-        customer: {
-            name: groupNickname,
-            phone: "",
-            address: ""
-        },
-        items: [...cart],
-        totalPrice: totalPrice,
-        note: "",
-        deliveryTime: "asap",
-        status: 'new',
-        createdAt: new Date().toISOString()
-    };
-    
-    // 使用Firebase保存订单
-    firebaseData.orders.save(order, function(success, orderId) {
-        if (success) {
-            // 显示订单成功模态框
-            document.getElementById('order-id').textContent = orderId || order.id;
-            
-            // 获取后台设置的取餐时间
-            const pickupTime = localStorage.getItem('pickupTimeSetting') || '30';
-            document.getElementById('pickup-time').textContent = `${pickupTime}分钟后`;
-            
-            const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
-            if (orderModal) orderModal.hide();
-            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-            successModal.show();
-            
-            // 清空购物车
-            cart = [];
-            updateCartDisplay();
-            
-            // 重置表单
-            document.getElementById('order-form').reset();
-        } else {
-            alert('订单提交失败，请重试');
-        }
-    });
-}
-
-// 生成订单ID
-function generateOrderId() {
-    const today = new Date();
-    const dateStr = today.getFullYear() +
-        String(today.getMonth() + 1).padStart(2, '0') +
-        String(today.getDate()).padStart(2, '0');
-    
-    // 获取今天的所有订单
-    const todayOrders = orders.filter(order => {
-        const orderDate = new Date(order.createdAt);
-        return orderDate.toDateString() === today.toDateString();
-    });
-    
-    // 找出今天最大的序号
-    let maxNumber = 0;
-    todayOrders.forEach(order => {
-        if (order.id.startsWith(dateStr)) {
-            const orderNumber = parseInt(order.id.slice(-3));
-            if (orderNumber > maxNumber) {
-                maxNumber = orderNumber;
+    try {
+        // 生成订单ID
+        const orderId = await generateOrderId();
+        
+        // 创建订单对象
+        const order = {
+            id: orderId,
+            customer: {
+                name: groupNickname,
+                phone: "",
+                address: ""
+            },
+            items: [...cart],
+            totalPrice: totalPrice,
+            note: "",
+            deliveryTime: "asap",
+            status: 'new',
+            createdAt: new Date().toISOString()
+        };
+        
+        // 使用Firebase保存订单
+        firebaseData.orders.save(order, function(success, orderId) {
+            if (success) {
+                // 显示订单成功模态框
+                document.getElementById('order-id').textContent = orderId || order.id;
+                
+                // 获取后台设置的取餐时间
+                const pickupTime = localStorage.getItem('pickupTimeSetting') || '30';
+                document.getElementById('pickup-time').textContent = `${pickupTime}分钟后`;
+                
+                const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
+                if (orderModal) orderModal.hide();
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+                
+                // 清空购物车
+                cart = [];
+                updateCartDisplay();
+                
+                // 重置表单
+                document.getElementById('order-form').reset();
+            } else {
+                alert('订单提交失败，请重试');
             }
-        }
-    });
-    
-    // 生成新的序号
-    const newNumber = (maxNumber + 1).toString().padStart(3, '0');
-    return `${dateStr}${newNumber}`;
+        });
+    } catch (error) {
+        console.error('生成订单ID失败:', error);
+        alert('订单提交失败，请重试');
+    }
 }
 
 // 保存订单到本地存储
