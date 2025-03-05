@@ -14,3 +14,9 @@ measurementId: "G-XZM2550T33"
 // 初始化Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
+
+// 添加匿名身份验证
+firebase.auth().signInAnonymously()
+  .catch((error) => {
+    console.error("匿名登录失败:", error);
+  });
