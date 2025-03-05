@@ -90,9 +90,25 @@ const firebaseData = {
       });
       return ordersRef; // 返回引用以便后续可以取消监听
     },
-    
     // 保存订单
     save: function(order, callback) {
+      // 检查用户是否已登录
+      const currentUser = firebase.auth().currentUser;
+      if (!currentUser) {
+        console.error("保存订单失败: 用户未登录");
+        // 尝试重新登录
+        firebase.auth().signInAnonymously()
+          .then(() => {
+            // 登录成功后重试保存订单
+            setTimeout(() => this.save(order, callback), 1000);
+          })
+          .catch((error) => {
+            console.error("匿名登录失败:", error);
+            callback(false);
+          });
+        return;
+      }
+      
       const orderRef = database.ref('orders/' + order.id);
       orderRef.set(order)
         .then(() => {
@@ -103,7 +119,6 @@ const firebaseData = {
           callback(false);
         });
     },
-    
     // 更新订单状态
     updateStatus: function(orderId, status, callback) {
       const updates = {};
