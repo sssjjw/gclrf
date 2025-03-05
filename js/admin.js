@@ -415,3 +415,19 @@ function saveMenuDescription() {
     localStorage.setItem('menuDescription', menuDescription);
     alert('菜单说明文字已保存');
 }
+
+// 绑定数据迁移按钮事件
+document.getElementById('migrate-data').addEventListener('click', function() {
+    if (confirm('确定要将本地数据迁移到Firebase吗？这将覆盖Firebase中的现有数据。')) {
+        firebaseData.migrate.fromLocalStorage(function(success) {
+            if (success) {
+                alert('数据迁移成功！');
+                loadMenuDescription();
+                loadMenuItems();
+                loadOrders();
+            } else {
+                alert('数据迁移失败，请查看控制台错误信息。');
+            }
+        });
+    }
+});

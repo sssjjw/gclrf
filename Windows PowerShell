@@ -1,0 +1,8 @@
+# 1. 删除现有的origin远程仓库配置
+git remote remove origin
+
+# 2. 重新添加正确的远程仓库地址（注意替换为您的用户名）
+git remote add origin https://github.com/sssjjw/哥村卤肉饭.git
+
+# 3. 验证远程仓库配置
+git remote -v
