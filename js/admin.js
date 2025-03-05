@@ -200,7 +200,6 @@ function updateOrderStatus(orderId, newStatus) {
         }
     });
 }
-}
 
 // 保存默认取餐时间设置
 function savePickupTimeSetting() {
