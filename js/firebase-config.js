@@ -17,6 +17,24 @@ const database = firebase.database();
 
 // 添加匿名身份验证
 firebase.auth().signInAnonymously()
+  .then(() => {
+    console.log("匿名登录成功");
+  })
   .catch((error) => {
     console.error("匿名登录失败:", error);
   });
+
+// 监听身份验证状态变化
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    // 用户已登录
+    console.log("用户已登录:", user.uid);
+  } else {
+    // 用户已登出
+    console.log("用户未登录，尝试重新进行匿名登录");
+    firebase.auth().signInAnonymously()
+      .catch((error) => {
+        console.error("重新匿名登录失败:", error);
+      });
+  }
+});
