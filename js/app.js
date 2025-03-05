@@ -225,19 +225,12 @@ function removeFromCart(itemId) {
 
 // 生成订单ID
 function generateOrderId() {
-    // 从Firebase获取今天的所有订单
+    // 从Firebase获取所有订单
     return new Promise((resolve) => {
         firebaseData.orders.getAll(function(allOrders) {
-            const today = new Date();
-            // 过滤出今天的订单
-            const todayOrders = allOrders.filter(order => {
-                const orderDate = new Date(order.createdAt);
-                return orderDate.toDateString() === today.toDateString();
-            });
-            
-            // 找出今天最大的序号
+            // 找出最大的序号
             let maxNumber = 0;
-            todayOrders.forEach(order => {
+            allOrders.forEach(order => {
                 // 尝试将订单ID解析为数字
                 const orderNumber = parseInt(order.id);
                 if (!isNaN(orderNumber) && orderNumber > maxNumber) {
