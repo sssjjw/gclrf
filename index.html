@@ -71,6 +71,19 @@
                             <label for="group-nickname" class="form-label">群昵称</label>
                             <input type="text" class="form-control" id="group-nickname" placeholder="请输入您的群昵称" required>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">订单详情</label>
+                            <div class="order-summary bg-light p-3 rounded">
+                                <div id="order-summary-items" class="mb-2">
+                                    <!-- 订单菜品详情将通过JavaScript动态加载 -->
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>总计:</span>
+                                    <span id="order-summary-total"></span>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">

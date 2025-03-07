@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 绑定提交订单按钮事件
     document.getElementById('submit-order').addEventListener('click', submitOrder);
+    
+    // 绑定结账按钮事件，在打开模态框时更新订单摘要
+    document.getElementById('checkout-btn').addEventListener('click', function() {
+        updateOrderSummary();
+    });
 });
 
 // 加载菜单函数
@@ -278,6 +283,44 @@ function generateOrderId() {
             resolve(orderId);
         });
     });
+}
+
+// 更新订单摘要函数
+function updateOrderSummary() {
+    const orderSummaryContainer = document.getElementById('order-summary-items');
+    const orderSummaryTotal = document.getElementById('order-summary-total');
+    
+    // 清空容器
+    orderSummaryContainer.innerHTML = '';
+    
+    if (cart.length === 0) {
+        // 如果购物车为空
+        orderSummaryContainer.innerHTML = '<p class="text-muted">您的购物车是空的</p>';
+        orderSummaryTotal.textContent = '€0.00';
+        return;
+    }
+    
+    // 计算总价
+    let totalPrice = 0;
+    
+    // 遍历购物车项并创建元素
+    cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        totalPrice += itemTotal;
+        
+        const orderItemElement = document.createElement('div');
+        orderItemElement.className = 'd-flex justify-content-between align-items-center mb-2';
+        orderItemElement.innerHTML = `
+            <div>
+                <span class="fw-bold">${item.name}</span> × ${item.quantity}
+            </div>
+            <span>€${itemTotal.toFixed(2)}</span>
+        `;
+        orderSummaryContainer.appendChild(orderItemElement);
+    });
+    
+    // 更新总价显示
+    orderSummaryTotal.textContent = `€${totalPrice.toFixed(2)}`;
 }
 
 // 提交订单函数
