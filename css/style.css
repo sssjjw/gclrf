@@ -34,6 +34,7 @@ h3 {
 .container {
     max-width: 1200px;
     padding: 0 20px;
+    margin: 0 auto;
 }
 
 /* 头部容器样式 - 更窄的宽度 */
@@ -43,33 +44,34 @@ header .container {
 
 /* 头部样式 - 马卡龙黄色主题 */
 header {
-    background-color: #FFE66D !important; /* 马卡龙黄色 */
+    background-color: #FFE66D !important;
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 1000;
-    padding: 2rem 0 !important; /* 增加上下内边距，让标题距离顶部更远 */
+    padding: 1.5rem 0 !important;
 }
 
 header h1 {
     color: #1d1d1f;
     font-weight: 600;
-    font-size: 1.5rem;
+    font-size: 2rem;
     margin: 0;
-    margin-top: 1rem; /* 增加标题与顶部的距离 */
+    margin-top: 0.5rem;
 }
 
 header p {
     color: #86868b;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    margin-bottom: 0;
 }
 
 /* 菜单项卡片样式 - 苹果风格 */
 .menu-item {
     transition: all 0.3s ease;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     height: 100%;
     border-radius: 12px;
     overflow: hidden;
@@ -79,12 +81,12 @@ header p {
 }
 
 .menu-item:hover {
-    transform: scale(1.02);
+    transform: translateY(-5px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .menu-item img {
-    height: 220px;
+    height: 180px;
     object-fit: cover;
     width: 100%;
 }
@@ -92,14 +94,14 @@ header p {
 .menu-item .card-body {
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
+    padding: 1.25rem;
     background-color: #fff;
 }
 
 .menu-item .card-footer {
     background-color: #fff;
     border-top: none;
-    padding: 0 1.5rem 1.5rem;
+    padding: 0 1.25rem 1.25rem;
     margin-top: auto;
 }
 
@@ -120,7 +122,7 @@ header p {
 
 /* 订单项样式 */
 .order-item {
-    padding: 15px 0;
+    padding: 12px 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
 }
@@ -137,6 +139,7 @@ header p {
 .quantity-control {
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .quantity-control button {
@@ -151,11 +154,12 @@ header p {
     color: #1d1d1f;
     font-weight: bold;
     transition: all 0.2s ease;
+    padding: 0;
 }
 
 .quantity-control button:hover {
     background-color: #f5f5f7;
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
 .quantity-control span {
@@ -169,9 +173,9 @@ header p {
     background-color: #0071e3;
     border-color: #0071e3;
     border-radius: 980px;
-    padding: 8px 20px;
+    padding: 10px 24px;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 1rem;
     transition: all 0.3s ease;
     color: #fff;
 }
@@ -179,8 +183,8 @@ header p {
 .btn-primary:hover, .btn-primary:focus {
     background-color: #0077ed;
     border-color: #0077ed;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0, 113, 227, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
 }
 
 .btn-secondary {
@@ -188,9 +192,9 @@ header p {
     border-color: #f5f5f7;
     color: #1d1d1f;
     border-radius: 980px;
-    padding: 8px 20px;
+    padding: 10px 24px;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 1rem;
     transition: all 0.3s ease;
 }
 
@@ -198,6 +202,91 @@ header p {
     background-color: #e8e8ed;
     border-color: #e8e8ed;
     color: #1d1d1f;
+    transform: translateY(-2px);
+}
+
+/* 响应式设计 */
+@media (max-width: 991.98px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    header h1 {
+        font-size: 1.75rem;
+    }
+
+    .menu-item img {
+        height: 160px;
+    }
+
+    #order.bg-light {
+        margin-top: 2rem;
+        position: static !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    header {
+        padding: 1rem 0 !important;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+        margin-top: 0.25rem;
+    }
+
+    header p {
+        font-size: 0.9rem;
+    }
+
+    .menu-item {
+        margin-bottom: 15px;
+    }
+
+    .menu-item img {
+        height: 140px;
+    }
+
+    .menu-item .card-body {
+        padding: 1rem;
+    }
+
+    .menu-item .card-footer {
+        padding: 0 1rem 1rem;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 8px 20px;
+        font-size: 0.95rem;
+    }
+
+    #order.bg-light {
+        padding: 1.25rem !important;
+        margin-top: 1.5rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .container {
+        padding: 0 10px;
+    }
+
+    header h1 {
+        font-size: 1.25rem;
+    }
+
+    .menu-item img {
+        height: 120px;
+    }
+
+    .quantity-control button {
+        width: 24px;
+        height: 24px;
+    }
+
+    .price {
+        font-size: 1rem;
+    }
 }
 
 .btn-outline-danger {
@@ -295,7 +384,49 @@ footer p {
     background-color: #34c759 !important;
 }
 
-/* 响应式调整 */
+/* 菜单项增强样式 */
+.menu-item .card-title {
+    position: relative;
+    padding-bottom: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.menu-item:hover .card-title {
+    color: #0071e3;
+}
+
+.menu-item .card-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background-color: #FFE66D;
+    transition: width 0.3s ease;
+}
+
+.menu-item:hover .card-title::after {
+    width: 60px;
+}
+
+/* 订单项增强样式 */
+.order-item {
+    border-radius: 8px;
+    padding: 12px 10px;
+    margin-bottom: 8px;
+}
+
+.order-item:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* 图标样式增强 */
+.bi {
+    vertical-align: -0.125em;
+}
+
+/* 移动端优化 */
 @media (max-width: 768px) {
     .menu-item img {
         height: 180px;
@@ -317,6 +448,16 @@ footer p {
     h2 {
         font-size: 1.5rem;
     }
+    
+    /* 移动端菜单项增强 */
+    .menu-item {
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .menu-item:active {
+        transform: scale(0.98);
+    }
 }
 
 /* 后台管理样式 */
@@ -326,6 +467,15 @@ footer p {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     padding: 1.5rem;
     margin-bottom: 20px;
+}
+
+.admin-table {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.admin-table table {
+    min-width: 800px;
 }
 
 .order-card {
@@ -356,6 +506,50 @@ footer p {
 
 .order-card.cancelled {
     border-left-color: #ff3b30;
+}
+
+/* 后台管理响应式优化 */
+@media (max-width: 767.98px) {
+    .admin-panel {
+        padding: 1rem;
+    }
+    
+    .order-card {
+        padding: 0.75rem;
+    }
+    
+    .admin-table {
+        margin: 0 -0.75rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* 移动端优化 */
+@media (max-width: 576px) {
+    .admin-panel h2 {
+        font-size: 1.5rem;
+    }
+    
+    .order-card .card-title {
+        font-size: 1rem;
+    }
+    
+    .order-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .order-card .card-footer {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
 }
 
 /* 表格样式 */

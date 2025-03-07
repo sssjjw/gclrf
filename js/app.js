@@ -33,8 +33,16 @@ function loadMenu() {
             return;
         }
         
-        // 遍历菜单项并创建卡片
-        menuItems.forEach(item => {
+        // 过滤出可见的菜单项
+        const visibleMenuItems = menuItems.filter(item => item.visible !== false);
+        
+        if (visibleMenuItems.length === 0) {
+            menuContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">暂无可用菜单项</p></div>';
+            return;
+        }
+        
+        // 遍历可见的菜单项并创建卡片
+        visibleMenuItems.forEach(item => {
             const menuItemElement = document.createElement('div');
             menuItemElement.className = 'col-md-6 col-lg-4';
             menuItemElement.innerHTML = `
@@ -228,19 +236,30 @@ function generateOrderId() {
     // 从Firebase获取所有订单
     return new Promise((resolve) => {
         firebaseData.orders.getAll(function(allOrders) {
+            // 获取当前日期作为前缀
+            const today = new Date();
+            const datePrefix = today.getFullYear().toString() +
+                             (today.getMonth() + 1).toString().padStart(2, '0') +
+                             today.getDate().toString().padStart(2, '0');
+            
             // 找出最大的序号
             let maxNumber = 0;
             allOrders.forEach(order => {
-                // 尝试将订单ID解析为数字
-                const orderNumber = parseInt(order.id);
-                if (!isNaN(orderNumber) && orderNumber > maxNumber) {
-                    maxNumber = orderNumber;
+                // 只比较今天的订单
+                if (order.id && order.id.startsWith(datePrefix)) {
+                    // 获取序号部分（最后三位）
+                    const orderNumber = parseInt(order.id.slice(-3));
+                    if (!isNaN(orderNumber) && orderNumber > maxNumber) {
+                        maxNumber = orderNumber;
+                    }
                 }
             });
             
             // 生成新的序号，从001开始
             const newNumber = (maxNumber + 1).toString().padStart(3, '0');
-            resolve(newNumber);
+            // 组合日期前缀和序号，在日期后添加短横线
+            const orderId = datePrefix + '-' + newNumber;
+            resolve(orderId);
         });
     });
 }
@@ -285,7 +304,7 @@ async function submitOrder() {
                 // 显示订单成功模态框
                 document.getElementById('order-id').textContent = orderId || order.id;
                 
-                // 移除动态设置取餐时间的代码，使用HTML中固定的文字
+                // 订单提交成功
                 
                 const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
                 if (orderModal) orderModal.hide();

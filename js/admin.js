@@ -7,14 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载订单数据
     loadOrders();
     
-    // 加载默认取餐时间设置
-    loadPickupTimeSetting();
-    
     // 绑定筛选器事件
     document.getElementById('order-filter').addEventListener('change', filterOrders);
-    
-    // 绑定取餐时间设置事件
-    document.getElementById('pickup-time-setting').addEventListener('change', savePickupTimeSetting);
     
     // 加载菜单数据
     loadMenuItems();
@@ -217,19 +211,6 @@ function updateOrderStatus(orderId, newStatus) {
     });
 }
 
-// 保存默认取餐时间设置
-function savePickupTimeSetting() {
-    const pickupTime = document.getElementById('pickup-time-setting').value;
-    localStorage.setItem('pickupTimeSetting', pickupTime);
-}
-
-// 加载默认取餐时间设置
-function loadPickupTimeSetting() {
-    const savedPickupTime = localStorage.getItem('pickupTimeSetting');
-    if (savedPickupTime) {
-        document.getElementById('pickup-time-setting').value = savedPickupTime;
-    }
-}
 
 // 加载菜单数据
 function loadMenuItems() {
@@ -252,6 +233,10 @@ function displayMenuItems() {
     menuItemsList.forEach(item => {
         const row = document.createElement('tr');
         
+        // 设置可见性按钮的文本和类
+        const visibilityBtnText = item.visible !== false ? '隐藏' : '显示';
+        const visibilityBtnClass = item.visible !== false ? 'btn-outline-secondary' : 'btn-outline-success';
+        
         row.innerHTML = `
             <td>${item.id}</td>
             <td><img src="${item.image}" alt="${item.name}" width="50" height="50" class="rounded"></td>
@@ -262,6 +247,7 @@ function displayMenuItems() {
             <td>
                 <button class="btn btn-sm btn-outline-primary edit-menu-item" data-id="${item.id}">编辑</button>
                 <button class="btn btn-sm btn-outline-danger delete-menu-item" data-id="${item.id}">删除</button>
+                <button class="btn btn-sm ${visibilityBtnClass} toggle-visibility" data-id="${item.id}">${visibilityBtnText}</button>
             </td>
         `;
         
@@ -281,6 +267,14 @@ function displayMenuItems() {
         button.addEventListener('click', function() {
             const itemId = parseInt(this.getAttribute('data-id'));
             deleteMenuItem(itemId);
+        });
+    });
+    
+    // 绑定显示/隐藏切换按钮事件
+    document.querySelectorAll('.toggle-visibility').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = parseInt(this.getAttribute('data-id'));
+            toggleMenuItemVisibility(itemId);
         });
     });
 }
@@ -364,7 +358,8 @@ function saveMenuItem() {
             description,
             price,
             image,
-            category
+            category,
+            visible: true // 默认新菜单项为可见
         };
     }
     
@@ -416,6 +411,28 @@ function generateMenuItemId() {
     
     // 返回新ID
     return maxId + 1;
+}
+
+// 切换菜单项的显示/隐藏状态
+function toggleMenuItemVisibility(itemId) {
+    // 查找菜单项
+    const index = menuItemsList.findIndex(item => item.id === itemId);
+    
+    if (index === -1) return;
+    
+    // 切换可见性状态
+    const menuItem = menuItemsList[index];
+    menuItem.visible = menuItem.visible === false ? true : false;
+    
+    // 保存到Firebase
+    firebaseData.menu.saveItem(menuItem, function(success) {
+        if (success) {
+            // 重新加载菜单列表
+            loadMenuItems();
+        } else {
+            alert('更新菜单项显示状态失败，请重试');
+        }
+    });
 }
 
 // 保存菜单数据到localStorage
