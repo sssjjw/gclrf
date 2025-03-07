@@ -114,10 +114,11 @@ header p {
 
 /* 订单侧边栏样式 - 苹果风格 */
 #order.bg-light {
-    background-color: #f5f5f7 !important;
+    background-color: #ffffff !important;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
     padding: 1.5rem !important;
+    z-index: 1001;
 }
 
 /* 订单项样式 */

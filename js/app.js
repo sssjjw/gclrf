@@ -98,6 +98,14 @@ function addToCart(itemId) {
         
         // 更新购物车显示
         updateCartDisplay();
+        
+        // 更新菜单项显示状态
+        const addToCartButton = document.querySelector(`.add-to-cart[data-id="${itemId}"]`);
+        if (addToCartButton) {
+            addToCartButton.innerHTML = '<i class="bi bi-check2"></i> 已加入购物车';
+            addToCartButton.classList.add('btn-success');
+            addToCartButton.classList.remove('btn-primary');
+        }
     });
     return; // 提前返回，因为后续代码已在回调函数中处理
     
@@ -229,6 +237,14 @@ function removeFromCart(itemId) {
     cart = cart.filter(item => item.id !== itemId);
     // 更新购物车显示
     updateCartDisplay();
+    
+    // 重置菜单项显示状态
+    const addToCartButton = document.querySelector(`.add-to-cart[data-id="${itemId}"]`);
+    if (addToCartButton) {
+        addToCartButton.innerHTML = '添加到购物车';
+        addToCartButton.classList.add('btn-primary');
+        addToCartButton.classList.remove('btn-success');
+    }
 }
 
 // 生成订单ID
