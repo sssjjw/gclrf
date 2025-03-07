@@ -86,9 +86,9 @@ header p {
 }
 
 .menu-item img {
-    height: 180px;
-    object-fit: cover;
     width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
 }
 
 .menu-item .card-body {
@@ -217,7 +217,9 @@ header p {
     }
 
     .menu-item img {
-        height: 160px;
+        width: 100%;
+        aspect-ratio: 4/3;
+        object-fit: cover;
     }
 
     #order.bg-light {
@@ -245,7 +247,9 @@ header p {
     }
 
     .menu-item img {
-        height: 140px;
+        width: 100%;
+        aspect-ratio: 4/3;
+        object-fit: cover;
     }
 
     .menu-item .card-body {
@@ -277,7 +281,9 @@ header p {
     }
 
     .menu-item img {
-        height: 120px;
+        width: 100%;
+        aspect-ratio: 4/3;
+        object-fit: cover;
     }
 
     .quantity-control button {
@@ -430,7 +436,9 @@ footer p {
 /* 移动端优化 */
 @media (max-width: 768px) {
     .menu-item img {
-        height: 180px;
+        width: 100%;
+        aspect-ratio: 4/3;
+        object-fit: cover;
     }
     
     #order {
