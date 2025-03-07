@@ -1,6 +1,7 @@
 // 初始化变量
 let orders = [];
 let menuItemsList = [];
+let discountRulesList = [];
 
 // DOM 加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
@@ -16,6 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载菜单说明文字
     loadMenuDescription();
     
+    // 加载折扣规则
+    loadDiscountRules();
+    
     // 绑定保存菜单说明文字按钮事件
     document.getElementById('save-menu-description').addEventListener('click', saveMenuDescription);
     
@@ -24,6 +28,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 绑定保存菜单项按钮事件
     document.getElementById('save-menu-item').addEventListener('click', saveMenuItem);
+    
+    // 绑定添加折扣规则按钮事件
+    document.getElementById('add-discount-rule').addEventListener('click', showAddDiscountRuleModal);
+    
+    // 绑定保存折扣规则按钮事件
+    document.getElementById('save-discount-rule').addEventListener('click', saveDiscountRule);
     
     // 绑定数据迁移按钮事件
     document.getElementById('migrate-data').addEventListener('click', function() {
@@ -41,6 +51,158 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// 加载折扣规则
+function loadDiscountRules() {
+    firebaseData.discounts.getRules(function(rules) {
+        discountRulesList = rules;
+        displayDiscountRules();
+    });
+}
+
+// 显示折扣规则列表
+function displayDiscountRules() {
+    const discountRulesTable = document.getElementById('discount-rules-table');
+    
+    // 清空表格
+    discountRulesTable.innerHTML = '';
+    
+    if (discountRulesList.length === 0) {
+        discountRulesTable.innerHTML = '<tr><td colspan="4" class="text-center text-muted">暂无折扣规则</td></tr>';
+        return;
+    }
+    
+    // 按金额阈值升序排序
+    discountRulesList.sort((a, b) => a.threshold - b.threshold);
+    
+    // 遍历折扣规则并创建表格行
+    discountRulesList.forEach(rule => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td>€${rule.threshold.toFixed(2)}</td>
+            <td>${rule.rate}%</td>
+            <td>
+                <span class="badge ${rule.enabled !== false ? 'bg-success' : 'bg-secondary'}">
+                    ${rule.enabled !== false ? '启用' : '禁用'}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary edit-discount-rule" data-id="${rule.id}">编辑</button>
+                <button class="btn btn-sm btn-outline-danger delete-discount-rule" data-id="${rule.id}">删除</button>
+            </td>
+        `;
+        
+        discountRulesTable.appendChild(row);
+    });
+    
+    // 绑定编辑按钮事件
+    document.querySelectorAll('.edit-discount-rule').forEach(button => {
+        button.addEventListener('click', function() {
+            const ruleId = this.getAttribute('data-id');
+            editDiscountRule(ruleId);
+        });
+    });
+    
+    // 绑定删除按钮事件
+    document.querySelectorAll('.delete-discount-rule').forEach(button => {
+        button.addEventListener('click', function() {
+            const ruleId = this.getAttribute('data-id');
+            deleteDiscountRule(ruleId);
+        });
+    });
+}
+
+// 显示添加折扣规则模态框
+function showAddDiscountRuleModal() {
+    // 清空表单
+    document.getElementById('discount-rule-form').reset();
+    document.getElementById('discount-rule-id').value = '';
+    
+    // 设置模态框标题
+    document.getElementById('discountRuleModalLabel').textContent = '添加折扣规则';
+    
+    // 显示模态框
+    const discountRuleModal = new bootstrap.Modal(document.getElementById('discountRuleModal'));
+    discountRuleModal.show();
+}
+
+// 编辑折扣规则
+function editDiscountRule(ruleId) {
+    // 查找折扣规则
+    const rule = discountRulesList.find(rule => rule.id === ruleId);
+    
+    if (!rule) return;
+    
+    // 填充表单
+    document.getElementById('discount-rule-id').value = rule.id;
+    document.getElementById('discount-threshold').value = rule.threshold;
+    document.getElementById('discount-rate').value = rule.rate;
+    document.getElementById('discount-enabled').checked = rule.enabled !== false;
+    
+    // 设置模态框标题
+    document.getElementById('discountRuleModalLabel').textContent = '编辑折扣规则';
+    
+    // 显示模态框
+    const discountRuleModal = new bootstrap.Modal(document.getElementById('discountRuleModal'));
+    discountRuleModal.show();
+}
+
+// 保存折扣规则
+function saveDiscountRule() {
+    // 获取表单数据
+    const ruleId = document.getElementById('discount-rule-id').value;
+    const threshold = parseFloat(document.getElementById('discount-threshold').value);
+    const rate = parseInt(document.getElementById('discount-rate').value);
+    const enabled = document.getElementById('discount-enabled').checked;
+    
+    // 验证数据
+    if (isNaN(threshold) || threshold < 0) {
+        alert('请输入有效的金额阈值');
+        return;
+    }
+    
+    if (isNaN(rate) || rate < 1 || rate > 100) {
+        alert('请输入有效的折扣率（1-100）');
+        return;
+    }
+    
+    // 创建或更新折扣规则对象
+    const rule = {
+        id: ruleId || Date.now().toString(),
+        threshold: threshold,
+        rate: rate,
+        enabled: enabled
+    };
+    
+    // 保存到Firebase
+    firebaseData.discounts.saveRule(rule, function(success) {
+        if (success) {
+            // 关闭模态框
+            const discountRuleModal = bootstrap.Modal.getInstance(document.getElementById('discountRuleModal'));
+            discountRuleModal.hide();
+            
+            // 重新加载折扣规则列表
+            loadDiscountRules();
+        } else {
+            alert('保存折扣规则失败，请重试');
+        }
+    });
+}
+
+// 删除折扣规则
+function deleteDiscountRule(ruleId) {
+    if (confirm('确定要删除这条折扣规则吗？')) {
+        firebaseData.discounts.deleteRule(ruleId, function(success) {
+            if (success) {
+                // 重新加载折扣规则列表
+                loadDiscountRules();
+            } else {
+                alert('删除折扣规则失败，请重试');
+            }
+        });
+    }
+}
 
 // 从Firebase加载订单
 function loadOrders(filter = 'all') {

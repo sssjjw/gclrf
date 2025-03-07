@@ -1,5 +1,65 @@
 // Firebase数据操作函数
-const firebaseData = {
+const firebaseData = {  
+  // 折扣规则相关操作
+  discounts: {
+    // 获取所有折扣规则
+    getRules: function(callback) {
+      database.ref('discountRules').once('value')
+        .then((snapshot) => {
+          const rules = snapshot.val() || {};
+          callback(Object.values(rules));
+        })
+        .catch((error) => {
+          console.error("获取折扣规则失败:", error);
+          callback([]);
+        });
+    },
+    
+    // 保存折扣规则
+    saveRule: function(rule, callback) {
+      const ruleRef = database.ref('discountRules/' + rule.id);
+      ruleRef.set(rule)
+        .then(() => {
+          callback(true);
+        })
+        .catch((error) => {
+          console.error("保存折扣规则失败:", error);
+          callback(false);
+        });
+    },
+    
+    // 删除折扣规则
+    deleteRule: function(ruleId, callback) {
+      database.ref('discountRules/' + ruleId).remove()
+        .then(() => {
+          callback(true);
+        })
+        .catch((error) => {
+          console.error("删除折扣规则失败:", error);
+          callback(false);
+        });
+    },
+    
+    // 获取适用的折扣率
+    getApplicableDiscount: function(totalAmount, callback) {
+      this.getRules(function(rules) {
+        // 过滤出启用的规则
+        const enabledRules = rules.filter(rule => rule.enabled !== false);
+        
+        // 按金额阈值降序排序
+        enabledRules.sort((a, b) => b.threshold - a.threshold);
+        
+        // 查找适用的最优惠折扣
+        const applicableRule = enabledRules.find(rule => totalAmount >= rule.threshold);
+        
+        if (applicableRule) {
+          callback(applicableRule.rate / 100); // 转换为小数形式的折扣率
+        } else {
+          callback(1); // 没有适用的折扣，返回1（不打折）
+        }
+      });
+    }
+  },
   // 菜单相关操作
   menu: {
     // 获取菜单说明
@@ -175,6 +235,14 @@ const firebaseData = {
           ordersObj[order.id] = order;
         });
         database.ref('orders').set(ordersObj);
+        
+        // 迁移折扣规则
+        const discountRules = JSON.parse(localStorage.getItem('discountRules') || '[]');
+        const discountRulesObj = {};
+        discountRules.forEach(rule => {
+          discountRulesObj[rule.id] = rule;
+        });
+        database.ref('discountRules').set(discountRulesObj);
         
         callback(true);
       } catch (error) {

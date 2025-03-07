@@ -113,27 +113,6 @@ function addToCart(itemId) {
         }
     });
     return; // 提前返回，因为后续代码已在回调函数中处理
-    
-    if (!menuItem) return;
-    
-    // 检查购物车中是否已有该商品
-    const existingItem = cart.find(item => item.id === itemId);
-    
-    if (existingItem) {
-        // 如果已存在，增加数量
-        existingItem.quantity += 1;
-    } else {
-        // 如果不存在，添加到购物车
-        cart.push({
-            id: menuItem.id,
-            name: menuItem.name,
-            price: menuItem.price,
-            quantity: 1
-        });
-    }
-    
-    // 更新购物车显示
-    updateCartDisplay();
 }
 
 // 更新购物车显示函数
@@ -300,13 +279,13 @@ function updateOrderSummary() {
         return;
     }
     
-    // 计算总价
-    let totalPrice = 0;
+    // 计算商品总价
+    let subtotal = 0;
     
     // 遍历购物车项并创建元素
     cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
-        totalPrice += itemTotal;
+        subtotal += itemTotal;
         
         const orderItemElement = document.createElement('div');
         orderItemElement.className = 'd-flex justify-content-between align-items-center mb-2';
@@ -319,8 +298,47 @@ function updateOrderSummary() {
         orderSummaryContainer.appendChild(orderItemElement);
     });
     
-    // 更新总价显示
-    orderSummaryTotal.textContent = `€${totalPrice.toFixed(2)}`;
+    // 获取适用的折扣
+    firebaseData.discounts.getApplicableDiscount(subtotal, function(discountRate) {
+        // 计算折扣后的总价
+        const totalPrice = subtotal * discountRate;
+        const discountAmount = subtotal - totalPrice;
+        
+        // 如果有折扣，显示折扣信息
+        if (discountRate < 1) {
+            const discountPercentage = (1 - discountRate) * 100;
+            
+            // 添加小计行
+            const subtotalElement = document.createElement('div');
+            subtotalElement.className = 'd-flex justify-content-between align-items-center mb-2';
+            subtotalElement.innerHTML = `
+                <div>
+                    <span>小计</span>
+                </div>
+                <span>€${subtotal.toFixed(2)}</span>
+            `;
+            orderSummaryContainer.appendChild(subtotalElement);
+            
+            // 添加折扣行
+            const discountElement = document.createElement('div');
+            discountElement.className = 'd-flex justify-content-between align-items-center mb-2 text-success';
+            discountElement.innerHTML = `
+                <div>
+                    <span>折扣 (${discountPercentage.toFixed(0)}%)</span>
+                </div>
+                <span>-€${discountAmount.toFixed(2)}</span>
+            `;
+            orderSummaryContainer.appendChild(discountElement);
+            
+            // 添加分隔线
+            const dividerElement = document.createElement('hr');
+            dividerElement.className = 'my-2';
+            orderSummaryContainer.appendChild(dividerElement);
+        }
+        
+        // 更新总价显示
+        orderSummaryTotal.textContent = `€${totalPrice.toFixed(2)}`;
+    });
 }
 
 // 提交订单函数
@@ -334,56 +352,63 @@ async function submitOrder() {
         return;
     }
     
-    // 计算总价
-    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // 计算商品小计
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
-    try {
-        // 生成订单ID
-        const orderId = await generateOrderId();
+    // 获取适用的折扣并创建订单
+    firebaseData.discounts.getApplicableDiscount(subtotal, async function(discountRate) {
+        // 计算折扣后的总价
+        const totalPrice = subtotal * discountRate;
         
-        // 创建订单对象
-        const order = {
-            id: orderId,
-            customer: {
-                name: groupNickname,
-                phone: "",
-                address: ""
-            },
-            items: [...cart],
-            totalPrice: totalPrice,
-            note: "",
-            deliveryTime: "asap",
-            status: 'new',
-            createdAt: new Date().toISOString()
-        };
-        
-        // 使用Firebase保存订单
-        firebaseData.orders.save(order, function(success, orderId) {
-            if (success) {
-                // 显示订单成功模态框
-                document.getElementById('order-id').textContent = orderId || order.id;
-                
-                // 订单提交成功
-                
-                const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
-                if (orderModal) orderModal.hide();
-                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-                successModal.show();
-                
-                // 清空购物车
-                cart = [];
-                updateCartDisplay();
-                
-                // 重置表单
-                document.getElementById('order-form').reset();
-            } else {
-                alert('订单提交失败，请重试');
-            }
-        });
-    } catch (error) {
-        console.error('生成订单ID失败:', error);
-        alert('订单提交失败，请重试');
-    }
+        try {
+            // 生成订单ID
+            const orderId = await generateOrderId();
+            
+            // 创建订单对象
+            const order = {
+                id: orderId,
+                customer: {
+                    name: groupNickname,
+                    phone: "",
+                    address: ""
+                },
+                items: [...cart],
+                subtotal: subtotal,
+                discountRate: discountRate,
+                totalPrice: totalPrice,
+                note: "",
+                deliveryTime: "asap",
+                status: 'new',
+                createdAt: new Date().toISOString()
+            };
+            
+            // 使用Firebase保存订单
+            firebaseData.orders.save(order, function(success, orderId) {
+                if (success) {
+                    // 显示订单成功模态框
+                    document.getElementById('order-id').textContent = orderId || order.id;
+                    
+                    // 订单提交成功
+                    const orderModal = bootstrap.Modal.getInstance(document.getElementById('orderModal'));
+                    if (orderModal) orderModal.hide();
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    
+                    // 清空购物车
+                    cart = [];
+                    updateCartDisplay();
+                    
+                    // 重置表单
+                    document.getElementById('order-form').reset();
+                } else {
+                    alert('订单提交失败，请重试');
+                }
+            });
+        } catch (error) {
+            console.error('生成订单ID失败:', error);
+            alert('订单提交失败，请重试');
+        }
+    });
 }
 
 // 保存订单到本地存储

@@ -198,10 +198,50 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="menu-tab" data-bs-toggle="tab" data-bs-target="#menu-content" type="button" role="tab" aria-controls="menu-content" aria-selected="false">菜单管理</button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="discount-tab" data-bs-toggle="tab" data-bs-target="#discount-content" type="button" role="tab" aria-controls="discount-content" aria-selected="false">折扣设置</button>
+                    </li>
                 </ul>
                 
                 <!-- 标签内容 -->
                 <div class="tab-content" id="adminTabsContent">
+                    <!-- 折扣设置标签 -->
+                    <div class="tab-pane fade" id="discount-content" role="tabpanel" aria-labelledby="discount-tab">
+                        <div class="admin-panel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h2 class="mb-0">折扣设置</h2>
+                                <button class="btn btn-primary" id="add-discount-rule">添加折扣规则</button>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">折扣规则说明</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>设置消费金额阈值和对应的折扣率，当顾客订单金额达到或超过阈值时，将自动应用相应的折扣。</p>
+                                    <p>例如：设置消费满50欧元打9折，满100欧元打8折等。</p>
+                                    <p>系统将自动应用最优惠的折扣规则。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive admin-table">
+                                <table class="table table-hover table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>消费金额阈值 (€)</th>
+                                            <th>折扣率 (%)</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="discount-rules-table">
+                                        <!-- 折扣规则将通过JavaScript动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 订单管理标签 -->
                     <div class="tab-pane fade show active" id="orders-content" role="tabpanel" aria-labelledby="orders-tab">
                         <div class="admin-panel">
@@ -300,6 +340,41 @@
             </div>
         </div>
     </footer>
+
+    <!-- 折扣规则编辑模态框 -->
+    <div class="modal fade" id="discountRuleModal" tabindex="-1" aria-labelledby="discountRuleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="discountRuleModalLabel">编辑折扣规则</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="discount-rule-form">
+                        <input type="hidden" id="discount-rule-id">
+                        <div class="mb-3">
+                            <label for="discount-threshold" class="form-label">消费金额阈值 (€)</label>
+                            <input type="number" class="form-control" id="discount-threshold" min="0" step="0.01" required>
+                            <div class="form-text">当订单总金额达到或超过此值时，将应用折扣</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount-rate" class="form-label">折扣率 (%)</label>
+                            <input type="number" class="form-control" id="discount-rate" min="1" max="100" step="1" required>
+                            <div class="form-text">例如：90表示打9折，80表示打8折</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="discount-enabled" checked>
+                            <label class="form-check-label" for="discount-enabled">启用此折扣规则</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-discount-rule">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 菜单项编辑模态框 -->
     <div class="modal fade" id="menuItemModal" tabindex="-1" aria-labelledby="menuItemModalLabel" aria-hidden="true">
