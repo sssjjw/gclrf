@@ -14,6 +14,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('checkout-btn').addEventListener('click', function() {
         updateOrderSummary();
     });
+    
+    // 绑定悬浮订单结账按钮事件
+    document.getElementById('floating-checkout-btn').addEventListener('click', function() {
+        updateOrderSummary();
+    });
+    
+    // 绑定悬浮订单折叠/展开事件
+    document.getElementById('toggle-order').addEventListener('click', function() {
+        const floatingOrder = document.getElementById('floating-order');
+        floatingOrder.classList.toggle('collapsed');
+    });
 });
 
 // 加载菜单函数
@@ -121,25 +132,39 @@ function updateCartDisplay() {
     const totalPriceElement = document.getElementById('total-price');
     const checkoutButton = document.getElementById('checkout-btn');
     
+    // 悬浮订单元素
+    const floatingOrderItemsContainer = document.getElementById('floating-order-items');
+    const floatingTotalPriceElement = document.getElementById('floating-total-price');
+    const floatingCheckoutButton = document.getElementById('floating-checkout-btn');
+    const cartBadgeElement = document.getElementById('cart-badge');
+    
     // 清空容器
     orderItemsContainer.innerHTML = '';
+    floatingOrderItemsContainer.innerHTML = '';
     
     if (cart.length === 0) {
         // 如果购物车为空
         orderItemsContainer.innerHTML = '<p class="text-muted">您的购物车是空的</p>';
+        floatingOrderItemsContainer.innerHTML = '<p class="text-muted">您的购物车是空的</p>';
         totalPriceElement.textContent = '€0.00';
+        floatingTotalPriceElement.textContent = '€0.00';
         checkoutButton.disabled = true;
+        floatingCheckoutButton.disabled = true;
+        cartBadgeElement.textContent = '0';
         return;
     }
     
-    // 计算总价
+    // 计算总价和商品总数
     let totalPrice = 0;
+    let totalItems = 0;
     
     // 遍历购物车项并创建元素
     cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         totalPrice += itemTotal;
+        totalItems += item.quantity;
         
+        // 为主订单创建元素
         const orderItemElement = document.createElement('div');
         orderItemElement.className = 'order-item';
         orderItemElement.innerHTML = `
@@ -157,15 +182,53 @@ function updateCartDisplay() {
             </div>
         `;
         orderItemsContainer.appendChild(orderItemElement);
+        
+        // 为悬浮订单创建元素
+        const floatingOrderItemElement = document.createElement('div');
+        floatingOrderItemElement.className = 'order-item';
+        floatingOrderItemElement.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>${item.name}</span>
+                <span class="price">€${item.price.toFixed(2)}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="quantity-control">
+                    <button class="floating-decrease-quantity" data-id="${item.id}">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="floating-increase-quantity" data-id="${item.id}">+</button>
+                </div>
+                <button class="btn btn-sm btn-outline-danger floating-remove-item" data-id="${item.id}">删除</button>
+            </div>
+        `;
+        floatingOrderItemsContainer.appendChild(floatingOrderItemElement);
     });
     
     // 更新总价显示
-    totalPriceElement.textContent = `€${totalPrice.toFixed(2)}`;
+    // 获取适用的折扣并显示折扣后的价格
+    firebaseData.discounts.getApplicableDiscount(totalPrice, function(discountRate) {
+        // 计算折扣后的总价
+        const discountedPrice = totalPrice * discountRate;
+        
+        // 如果有折扣，显示原价和折扣后的价格
+        if (discountRate < 1) {
+            const discountPercentage = (1 - discountRate) * 100;
+            totalPriceElement.innerHTML = `€${totalPrice.toFixed(2)} <span class="text-success">→ €${discountedPrice.toFixed(2)} (-${discountPercentage.toFixed(0)}%)</span>`;
+            floatingTotalPriceElement.innerHTML = `€${totalPrice.toFixed(2)} <span class="text-success">→ €${discountedPrice.toFixed(2)}</span>`;
+        } else {
+            // 没有折扣时只显示原价
+            totalPriceElement.textContent = `€${totalPrice.toFixed(2)}`;
+            floatingTotalPriceElement.textContent = `€${totalPrice.toFixed(2)}`;
+        }
+    });
+    
+    // 更新购物车数量标记
+    cartBadgeElement.textContent = totalItems.toString();
     
     // 启用结账按钮
     checkoutButton.disabled = false;
+    floatingCheckoutButton.disabled = false;
     
-    // 绑定数量控制按钮事件
+    // 绑定主订单数量控制按钮事件
     document.querySelectorAll('.decrease-quantity').forEach(button => {
         button.addEventListener('click', function() {
             const itemId = parseInt(this.getAttribute('data-id'));
@@ -181,6 +244,28 @@ function updateCartDisplay() {
     });
     
     document.querySelectorAll('.remove-item').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = parseInt(this.getAttribute('data-id'));
+            removeFromCart(itemId);
+        });
+    });
+    
+    // 绑定悬浮订单数量控制按钮事件
+    document.querySelectorAll('.floating-decrease-quantity').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = parseInt(this.getAttribute('data-id'));
+            decreaseQuantity(itemId);
+        });
+    });
+    
+    document.querySelectorAll('.floating-increase-quantity').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = parseInt(this.getAttribute('data-id'));
+            increaseQuantity(itemId);
+        });
+    });
+    
+    document.querySelectorAll('.floating-remove-item').forEach(button => {
         button.addEventListener('click', function() {
             const itemId = parseInt(this.getAttribute('data-id'));
             removeFromCart(itemId);
