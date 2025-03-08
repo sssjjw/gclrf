@@ -1,0 +1,31 @@
+/* 引入霞鹜文楷字体 */
+@font-face {
+    font-family: 'LXGW WenKai';
+    src: url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style/lxgw-wenkai-regular.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style/lxgw-wenkai-regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LXGW WenKai';
+    src: url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style/lxgw-wenkai-bold.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style/lxgw-wenkai-bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 全局应用霞鹜文楷字体 */
+body {
+    font-family: 'LXGW WenKai', sans-serif;
+}
+
+/* 确保所有文本元素都使用霞鹜文楷字体 */
+h1, h2, h3, h4, h5, h6,
+p, span, a, button, input, select, textarea,
+.btn, .form-control, .card-title, .card-text,
+.modal-title, .alert, .badge, .nav-link {
+    font-family: 'LXGW WenKai', sans-serif !important;
+}

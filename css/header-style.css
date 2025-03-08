@@ -1,0 +1,142 @@
+/* 主页顶部新潮设计样式 */
+
+/* 头部容器样式 */
+header {
+    background: linear-gradient(135deg, #FFD23F 0%, #FF9B40 100%);
+    padding: 2rem 0 !important;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border-bottom: none;
+    transform-style: preserve-3d;
+    z-index: 1000;
+}
+
+/* 背景装饰元素 */
+header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 10%, transparent 10.5%);
+    background-size: 20px 20px;
+    transform: rotate(30deg);
+    z-index: -1;
+    opacity: 0.6;
+    animation: patternMove 60s linear infinite;
+}
+
+/* 头部内容容器 */
+header .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* 标题样式 - 使用霞鹜文楷字体 */
+header h1 {
+    font-family: 'LXGW WenKai', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    text-shadow: 3px 3px 0px rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+    transform: perspective(500px) translateZ(0);
+    transition: all 0.5s ease;
+    animation: titleFloat 3s ease-in-out infinite;
+}
+
+/* 副标题样式 */
+header p {
+    font-family: 'LXGW WenKai', sans-serif;
+    color: #333;
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+    animation: subtitleAppear 1s ease-out forwards;
+}
+
+/* 标题悬停效果 */
+header:hover h1 {
+    transform: perspective(500px) translateZ(20px);
+    text-shadow: 4px 4px 0px rgba(255,255,255,0.6), 8px 8px 10px rgba(0,0,0,0.1);
+}
+
+/* 动画定义 */
+@keyframes titleFloat {
+    0%, 100% {
+        transform: perspective(500px) translateZ(0) translateY(0);
+    }
+    50% {
+        transform: perspective(500px) translateZ(10px) translateY(-5px);
+    }
+}
+
+@keyframes subtitleAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 0.9;
+        transform: translateY(0);
+    }
+}
+
+@keyframes patternMove {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 1000px 1000px;
+    }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2.5rem;
+    }
+    
+    header p {
+        font-size: 1rem;
+    }
+}
+
+/* 添加一个装饰性的食物图标 */
+.header-icon {
+    position: absolute;
+    font-size: 2rem;
+    color: rgba(255,255,255,0.7);
+    animation: iconFloat 4s ease-in-out infinite;
+}
+
+.header-icon:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.header-icon:nth-child(2) {
+    top: 30%;
+    right: 15%;
+    animation-delay: 1s;
+}
+
+.header-icon:nth-child(3) {
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 2s;
+}
+
+@keyframes iconFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(5deg);
+    }
+}
