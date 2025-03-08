@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>哥村卤肉饭 - 后台管理</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cropper.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        /* 马卡龙黄色主题 - 后台管理专用样式 */
+        :root {
+            --macaron-yellow: #FFE66D;
+            --macaron-yellow-light: #FFF3B0;
+            --macaron-yellow-dark: #FFD23F;
+            --text-dark: #1d1d1f;
+            --text-muted: #86868b;
+        }
+        
+        /* 后台标题栏样式 */
+        header.bg-dark {
+            background-color: var(--macaron-yellow) !important;
+            color: var(--text-dark) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1, header .text-white {
+            color: var(--text-dark) !important;
+            margin-left: 15px;
+            padding-left: 10px;
+            font-size: 1.8rem;
+        }
+        
+        header .btn-outline-light {
+            color: var(--text-dark);
+            border-color: var(--text-dark);
+            background-color: transparent;
+        }
+        
+        header .btn-outline-light:hover {
+            background-color: rgba(29, 29, 31, 0.1);
+            color: var(--text-dark);
+            border-color: var(--text-dark);
+        }
+        
+        /* 导航标签样式 */
+        .nav-tabs .nav-link {
+            color: var(--text-dark);
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0;
+            position: relative;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--text-dark);
+            background-color: rgba(255, 230, 109, 0.2);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--text-dark);
+            background-color: transparent;
+            font-weight: 600;
+        }
+        
+        .nav-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--macaron-yellow-dark);
+        }
+        
+        /* 管理面板样式 */
+        .admin-panel {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 230, 109, 0.3);
+        }
+        
+        /* 卡片样式 */
+        .card {
+            border-radius: 12px;
+            border: 1px solid rgba(255, 230, 109, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .card-header {
+            background-color: var(--macaron-yellow-light);
+            border-bottom: 1px solid rgba(255, 230, 109, 0.3);
+            padding: 1rem 1.25rem;
+        }
+        
+        .card-header h5 {
+            color: var(--text-dark);
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+        
+        /* 表格样式 */
+        .table thead th {
+            background-color: var(--macaron-yellow-light);
+            color: var(--text-dark);
+            font-weight: 600;
+            border-color: rgba(255, 230, 109, 0.3);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(255, 230, 109, 0.1);
+        }
+        
+        /* 按钮样式 */
+        .btn-primary {
+            background-color: var(--macaron-yellow-dark);
+            border-color: var(--macaron-yellow-dark);
+            color: var(--text-dark);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #FFCB05;
+            border-color: #FFCB05;
+            color: var(--text-dark);
+            box-shadow: 0 4px 12px rgba(255, 210, 63, 0.3);
+        }
+        
+        .btn-warning {
+            background-color: #FFB74D;
+            border-color: #FFB74D;
+            color: var(--text-dark);
+        }
+        
+        .btn-warning:hover {
+            background-color: #FFA726;
+            border-color: #FFA726;
+            color: var(--text-dark);
+        }
+        
+        /* 表单控件样式 */
+        .form-control:focus, .form-select:focus {
+            border-color: var(--macaron-yellow-dark);
+            box-shadow: 0 0 0 2px rgba(255, 210, 63, 0.2);
+        }
+        
+        /* 页脚样式 */
+        footer.bg-dark {
+            background-color: var(--macaron-yellow) !important;
+            color: var(--text-dark) !important;
+        }
+        
+        footer h5, footer .text-white {
+            color: var(--text-dark) !important;
+        }
+        
+        /* 模态框样式 */
+        .modal-header {
+            background-color: var(--macaron-yellow-light);
+            border-bottom: 1px solid rgba(255, 230, 109, 0.3);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(255, 230, 109, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-dark text-white py-3">
+        <div class="container-fluid px-3">
+            <div class="row align-items-center">
+                <div class="col-md-6 d-flex align-items-center ps-0">
+                    <h1 class="mb-0">哥村卤肉饭 - 后台管理</h1>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="index.html" class="btn btn-outline-light">返回前台</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container my-4">
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                <!-- 导航标签 -->
+                <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-content" type="button" role="tab" aria-controls="orders-content" aria-selected="true">订单管理</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="menu-tab" data-bs-toggle="tab" data-bs-target="#menu-content" type="button" role="tab" aria-controls="menu-content" aria-selected="false">菜单管理</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="discount-tab" data-bs-toggle="tab" data-bs-target="#discount-content" type="button" role="tab" aria-controls="discount-content" aria-selected="false">折扣设置</button>
+                    </li>
+                </ul>
+                
+                <!-- 标签内容 -->
+                <div class="tab-content" id="adminTabsContent">
+                    <!-- 折扣设置标签 -->
+                    <div class="tab-pane fade" id="discount-content" role="tabpanel" aria-labelledby="discount-tab">
+                        <div class="admin-panel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h2 class="mb-0">折扣设置</h2>
+                                <button class="btn btn-primary" id="add-discount-rule">添加折扣规则</button>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">折扣规则说明</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>设置消费金额阈值和对应的折扣率，当顾客订单金额达到或超过阈值时，将自动应用相应的折扣。</p>
+                                    <p>例如：设置消费满50欧元打9折，满100欧元打8折等。</p>
+                                    <p>系统将自动应用最优惠的折扣规则。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive admin-table">
+                                <table class="table table-hover table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>消费金额阈值 (€)</th>
+                                            <th>折扣率 (%)</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="discount-rules-table">
+                                        <!-- 折扣规则将通过JavaScript动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 订单管理标签 -->
+                    <div class="tab-pane fade show active" id="orders-content" role="tabpanel" aria-labelledby="orders-tab">
+                        <div class="admin-panel">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                                <h2 class="mb-3 mb-md-0">订单管理</h2>
+                                <div class="d-flex flex-column flex-md-row gap-2">
+    
+                                    <div>
+                                        <label for="order-filter" class="form-label mb-0">筛选订单</label>
+                                        <select id="order-filter" class="form-select">
+                                            <option value="all">所有订单</option>
+                                            <option value="new">新订单</option>
+                                            <option value="processing">处理中</option>
+                                            <option value="completed">已完成</option>
+                                            <option value="cancelled">已取消</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="orders-container">
+                                <!-- 订单将通过JavaScript动态加载 -->
+                                <p class="text-muted text-center py-5">暂无订单数据</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 菜单管理标签 -->
+                    <div class="tab-pane fade" id="menu-content" role="tabpanel" aria-labelledby="menu-tab">
+                        <div class="admin-panel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h2 class="mb-0">菜单管理</h2>
+                                <button class="btn btn-primary" id="add-menu-item">添加菜单项</button>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">菜单说明文字</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="menu-description-text" class="form-label">首页菜单说明文字</label>
+                                        <textarea class="form-control" id="menu-description-text" rows="3" placeholder="输入显示在首页的菜单说明文字"></textarea>
+                                    </div>
+                                    <button class="btn btn-primary" id="save-menu-description">保存说明文字</button>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                              <div class="card-header">
+                                <h5 class="mb-0">数据迁移</h5>
+                              </div>
+                              <div class="card-body">
+                                <p>将本地存储的数据迁移到Firebase数据库</p>
+                                <button class="btn btn-warning" id="migrate-data">开始迁移</button>
+                              </div>
+                            </div>
+                            
+                            <div class="table-responsive admin-table">
+                                <table class="table table-hover table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>图片</th>
+                                            <th>名称</th>
+                                            <th>描述</th>
+                                            <th>价格</th>
+                                            <th>分类</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="menu-items-table">
+                                        <!-- 菜单项将通过JavaScript动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>哥村卤肉饭</h5>
+                    <p>地址：某某市某某区某某街123号</p>
+                    <p>电话：123-4567-8910</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>营业时间：周一至周日 10:00-21:00</p>
+                    <p>&copy; 2025 哥村卤肉饭. 保留所有权利.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 折扣规则编辑模态框 -->
+    <div class="modal fade" id="discountRuleModal" tabindex="-1" aria-labelledby="discountRuleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="discountRuleModalLabel">编辑折扣规则</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="discount-rule-form">
+                        <input type="hidden" id="discount-rule-id">
+                        <div class="mb-3">
+                            <label for="discount-threshold" class="form-label">消费金额阈值 (€)</label>
+                            <input type="number" class="form-control" id="discount-threshold" min="0" step="0.01" required>
+                            <div class="form-text">当订单总金额达到或超过此值时，将应用折扣</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount-rate" class="form-label">折扣率 (%)</label>
+                            <input type="number" class="form-control" id="discount-rate" min="1" max="100" step="1" required>
+                            <div class="form-text">例如：90表示打9折，80表示打8折</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="discount-enabled" checked>
+                            <label class="form-check-label" for="discount-enabled">启用此折扣规则</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-discount-rule">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 菜单项编辑模态框 -->
+    <div class="modal fade" id="menuItemModal" tabindex="-1" aria-labelledby="menuItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="menuItemModalLabel">编辑菜单项</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="menu-item-form">
+                        <input type="hidden" id="menu-item-id">
+                        <div class="mb-3">
+                            <label for="menu-item-name" class="form-label">名称</label>
+                            <input type="text" class="form-control" id="menu-item-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="menu-item-description" class="form-label">描述</label>
+                            <textarea class="form-control" id="menu-item-description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="menu-item-price" class="form-label">价格</label>
+                            <div class="input-group">
+                                <span class="input-group-text">€</span>
+                                <input type="number" class="form-control" id="menu-item-price" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="menu-item-image" class="form-label">图片URL</label>
+                            <input type="url" class="form-control" id="menu-item-image" required>
+                            <div class="form-text">请输入有效的图片URL地址</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="menu-item-category" class="form-label">分类</label>
+                            <select class="form-select" id="menu-item-category" required>
+                                <option value="主食">主食</option>
+                                <option value="套餐">套餐</option>
+                                <option value="便当">便当</option>
+                                <option value="素食">素食</option>
+                                <option value="家庭装">家庭装</option>
+                                <option value="小吃">小吃</option>
+                                <option value="儿童套餐">儿童套餐</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-menu-item">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- Firebase配置和数据操作 -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-data.js"></script>
+    <!-- 引入自定义JS -->
+    <script src="js/menu.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

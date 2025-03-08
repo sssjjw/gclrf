@@ -1,0 +1,57 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": false,
+    "orders": {
+      ".read": true,
+      ".write": "auth != null",
+      "$orderId": {
+        ".validate": "newData.hasChildren(['items', 'totalAmount', 'timestamp', 'status'])",
+        "items": {
+          ".validate": "newData.is('array')"
+        },
+        "totalAmount": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "timestamp": {
+          ".validate": "newData.val() <= now"
+        },
+        "status": {
+          ".validate": "newData.isString() && newData.val().matches(/^(pending|processing|completed|cancelled)$/)"
+        }
+      }
+    },
+    "menu": {
+      ".read": true,
+      ".write": "auth != null && auth.token.admin === true",
+      "$itemId": {
+        ".validate": "newData.hasChildren(['name', 'price', 'category'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "price": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "category": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "description": {
+          ".validate": "newData.isString()"
+        },
+        "image": {
+          ".validate": "newData.isString()"
+        }
+      }
+    },
+    "menuDescription": {
+      ".read": true,
+      ".write": "auth != null && auth.token.admin === true",
+      "title": {
+        ".validate": "newData.isString() && newData.val().length > 0"
+      },
+      "description": {
+        ".validate": "newData.isString()"
+      }
+    }
+  }
+}
