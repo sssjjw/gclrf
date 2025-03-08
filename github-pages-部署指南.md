@@ -84,7 +84,7 @@ git push
 
 1. 打开GitHub Desktop
 2. 查看更改的文件
-3. 添加提交信息
+3. 添加提交信息。
 4. 点击"Commit to main"
 5. 点击"Push origin"
 
