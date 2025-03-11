@@ -430,6 +430,7 @@ function updateOrderSummary() {
 async function submitOrder() {
     // 获取表单数据
     const groupNickname = document.getElementById('group-nickname').value;
+    const orderNote = document.getElementById('order-note').value;
     
     // 验证必填字段
     if (!groupNickname) {
@@ -461,7 +462,7 @@ async function submitOrder() {
                 subtotal: subtotal,
                 discountRate: discountRate,
                 totalPrice: totalPrice,
-                note: "",
+                note: orderNote,
                 deliveryTime: "asap",
                 status: 'new',
                 createdAt: new Date().toISOString()
