@@ -202,6 +202,9 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="discount-tab" data-bs-toggle="tab" data-bs-target="#discount-content" type="button" role="tab" aria-controls="discount-content" aria-selected="false">折扣设置</button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="statistics-tab" data-bs-toggle="tab" data-bs-target="#statistics-content" type="button" role="tab" aria-controls="statistics-content" aria-selected="false">品类统计</button>
+                    </li>
                 </ul>
                 
                 <!-- 标签内容 -->
@@ -318,6 +321,30 @@
                                         <!-- 菜单项将通过JavaScript动态加载 -->
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 品类统计标签 -->
+                    <div class="tab-pane fade" id="statistics-content" role="tabpanel" aria-labelledby="statistics-tab">
+                        <div class="admin-panel">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                                <h2 class="mb-3 mb-md-0">品类制作统计</h2>
+                                <div class="d-flex flex-column flex-md-row gap-2">
+                                    <div>
+                                        <label for="order-stats-filter" class="form-label mb-0">筛选订单状态</label>
+                                        <select id="order-stats-filter" class="form-select" onchange="filterOrderStatsByStatus()">
+                                            <option value="new">新订单</option>
+                                            <option value="processing">处理中</option>
+                                            <option value="all">所有订单</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary mt-2 mt-md-0" onclick="loadOrderStatistics()">刷新统计</button>
+                                </div>
+                            </div>
+                            
+                            <div id="category-stats-container">
+                                <!-- 统计数据将通过JavaScript动态加载 -->
+                                <p class="text-muted text-center py-5">暂无统计数据</p>
                             </div>
                         </div>
                     </div>
@@ -442,6 +469,7 @@
     <script src="js/firebase-data.js"></script>
     <!-- 引入自定义JS -->
     <script src="js/menu.js"></script>
+    <script src="js/order-statistics.js"></script>
     <script src="js/admin.js"></script>
 </body>
 </html>
