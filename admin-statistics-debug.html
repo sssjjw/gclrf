@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台品类统计诊断 - 哥村卤肉饭</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .debug-panel {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-ok { color: #28a745; }
+        .status-error { color: #dc3545; }
+        .status-warning { color: #ffc107; }
+        .log-area {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            border-radius: 4px;
+        }
+        .stats-preview {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">🔧 后台品类统计诊断</h1>
+        
+        <!-- 基础检查 -->
+        <div class="debug-panel">
+            <h3>📋 系统检查</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Firebase 连接:</strong> <span id="firebase-status">检查中...</span></p>
+                    <p><strong>订单数据服务:</strong> <span id="orders-status">检查中...</span></p>
+                    <p><strong>统计函数:</strong> <span id="functions-status">检查中...</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>DOM 元素:</strong> <span id="dom-status">检查中...</span></p>
+                    <p><strong>订单总数:</strong> <span id="orders-count">-</span></p>
+                    <p><strong>活跃订单数:</strong> <span id="active-orders-count">-</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 订单数据预览 -->
+        <div class="debug-panel">
+            <h3>📊 订单数据预览</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>订单状态分布</h5>
+                    <div id="order-status-summary">
+                        <p class="text-muted">加载中...</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h5>最近5个订单</h5>
+                    <div id="recent-orders-preview">
+                        <p class="text-muted">加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计功能测试 -->
+        <div class="debug-panel">
+            <h3>🧪 功能测试</h3>
+            <div class="mb-3">
+                <button class="btn btn-primary me-2" onclick="runBasicTest()">基础检查</button>
+                <button class="btn btn-success me-2" onclick="testStatisticsLoad()">测试统计加载</button>
+                <button class="btn btn-info me-2" onclick="testCategoryCalculation()">测试分类计算</button>
+                <button class="btn btn-warning me-2" onclick="clearLogs()">清空日志</button>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>筛选器测试</h5>
+                    <select id="test-filter" class="form-select mb-2">
+                        <option value="new">新订单</option>
+                        <option value="processing">处理中</option>
+                        <option value="completed">已完成</option>
+                        <option value="all">所有订单</option>
+                    </select>
+                    <button class="btn btn-outline-primary w-100" onclick="testFilter()">测试筛选</button>
+                </div>
+                <div class="col-md-6">
+                    <h5>快速操作</h5>
+                    <button class="btn btn-outline-info w-100 mb-2" onclick="simulateOrderData()">模拟订单数据</button>
+                    <a href="admin.html#statistics-tab" class="btn btn-outline-secondary w-100">返回后台统计</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计结果预览 -->
+        <div class="debug-panel">
+            <h3>📈 统计结果预览</h3>
+            <div class="stats-preview" id="stats-preview">
+                <p class="text-muted text-center">点击"测试统计加载"查看结果</p>
+            </div>
+        </div>
+
+        <!-- 调试日志 -->
+        <div class="debug-panel">
+            <h3>📝 调试日志</h3>
+            <div class="log-area" id="debug-log">
+                <div>🔧 品类统计诊断工具已启动...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- 配置文件 -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-data.js"></script>
+    <script src="js/order-statistics.js"></script>
+
+    <script>
+        let testOrders = [];
+        let testCategoryStats = {};
+
+        function log(message, type = 'info') {
+            const logArea = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            
+            let color = '#0f0';
+            if (type === 'error') color = '#f00';
+            else if (type === 'warning') color = '#ff0';
+            else if (type === 'success') color = '#0f0';
+            
+            logEntry.style.color = color;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function setStatus(elementId, text, type = 'info') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+                element.className = `status ${type === 'ok' ? 'status-ok' : type === 'error' ? 'status-error' : 'status-warning'}`;
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('debug-log').innerHTML = '<div>📝 日志已清空</div>';
+        }
+
+        function runBasicTest() {
+            log('🔍 开始基础系统检查...', 'info');
+            
+            // 检查Firebase
+            if (typeof firebase !== 'undefined') {
+                setStatus('firebase-status', '✅ 正常', 'ok');
+                log('✅ Firebase SDK 已加载', 'success');
+            } else {
+                setStatus('firebase-status', '❌ 错误', 'error');
+                log('❌ Firebase SDK 未加载', 'error');
+            }
+
+            // 检查订单数据服务
+            if (typeof firebaseData !== 'undefined' && firebaseData.orders) {
+                setStatus('orders-status', '✅ 正常', 'ok');
+                log('✅ firebaseData.orders 可用', 'success');
+            } else {
+                setStatus('orders-status', '❌ 错误', 'error');
+                log('❌ firebaseData.orders 不可用', 'error');
+            }
+
+            // 检查统计函数
+            if (typeof loadOrderStatistics === 'function' && typeof calculateCategoryStats === 'function') {
+                setStatus('functions-status', '✅ 正常', 'ok');
+                log('✅ 统计函数可用', 'success');
+            } else {
+                setStatus('functions-status', '❌ 错误', 'error');
+                log('❌ 统计函数不可用', 'error');
+            }
+
+            // 检查DOM元素
+            const hasStatsContainer = !!document.getElementById('stats-preview');
+            const hasFilter = !!document.getElementById('test-filter');
+            
+            if (hasStatsContainer && hasFilter) {
+                setStatus('dom-status', '✅ 正常', 'ok');
+                log('✅ DOM 元素完整', 'success');
+            } else {
+                setStatus('dom-status', '❌ 错误', 'error');
+                log('❌ DOM 元素缺失', 'error');
+            }
+
+            // 加载订单数据进行分析
+            loadOrdersForAnalysis();
+        }
+
+        function loadOrdersForAnalysis() {
+            log('📥 加载订单数据进行分析...', 'info');
+            
+            if (!firebaseData || !firebaseData.orders) {
+                log('❌ 无法加载订单数据', 'error');
+                return;
+            }
+
+            firebaseData.orders.getAll(function(ordersList) {
+                testOrders = ordersList || [];
+                
+                log(`📊 获取到 ${testOrders.length} 个订单`, 'success');
+                setStatus('orders-count', testOrders.length.toString(), 'ok');
+                
+                // 分析订单状态
+                analyzeOrderStatus();
+                
+                // 显示最近订单
+                showRecentOrders();
+                
+                // 计算活跃订单数
+                const activeOrders = testOrders.filter(order => 
+                    order.status === 'new' || order.status === 'processing'
+                );
+                setStatus('active-orders-count', activeOrders.length.toString(), 'ok');
+                log(`🔥 活跃订单数: ${activeOrders.length}`, 'info');
+            });
+        }
+
+        function analyzeOrderStatus() {
+            const statusCounts = {};
+            
+            testOrders.forEach(order => {
+                const status = order.status || 'unknown';
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+            });
+            
+            const statusContainer = document.getElementById('order-status-summary');
+            statusContainer.innerHTML = '';
+            
+            for (const [status, count] of Object.entries(statusCounts)) {
+                const statusDiv = document.createElement('div');
+                statusDiv.innerHTML = `<span class="badge bg-secondary me-2">${status}</span> ${count} 个`;
+                statusContainer.appendChild(statusDiv);
+            }
+            
+            log('📈 订单状态分析完成', 'success');
+        }
+
+        function showRecentOrders() {
+            const recentContainer = document.getElementById('recent-orders-preview');
+            recentContainer.innerHTML = '';
+            
+            const recentOrders = testOrders.slice(-5).reverse();
+            
+            if (recentOrders.length === 0) {
+                recentContainer.innerHTML = '<p class="text-muted">无订单数据</p>';
+                return;
+            }
+            
+            recentOrders.forEach(order => {
+                const orderDiv = document.createElement('div');
+                orderDiv.className = 'border-bottom py-2';
+                orderDiv.innerHTML = `
+                    <small class="text-muted">订单 ${order.id || '未知'}</small><br>
+                    <strong>状态:</strong> ${order.status || '未知'}<br>
+                    <strong>商品数:</strong> ${order.items ? order.items.length : 0}
+                `;
+                recentContainer.appendChild(orderDiv);
+            });
+            
+            log('📋 最近订单显示完成', 'success');
+        }
+
+        function testStatisticsLoad() {
+            log('🧪 开始测试统计加载功能...', 'info');
+            
+            if (typeof loadOrderStatistics !== 'function') {
+                log('❌ loadOrderStatistics 函数不存在', 'error');
+                return;
+            }
+
+            // 重写统计显示函数来显示在我们的预览区域
+            const originalDisplayFunction = window.displayCategoryStats;
+            
+            window.displayCategoryStats = function() {
+                log('🎨 开始显示统计结果...', 'info');
+                
+                const statsPreview = document.getElementById('stats-preview');
+                statsPreview.innerHTML = '';
+                
+                if (!categoryStats || Object.keys(categoryStats).length === 0) {
+                    statsPreview.innerHTML = '<p class="text-muted text-center">暂无需要制作的菜品</p>';
+                    log('💭 没有需要统计的数据', 'warning');
+                    return;
+                }
+                
+                const sortedCategories = Object.keys(categoryStats).sort((a, b) => 
+                    categoryStats[b].totalQuantity - categoryStats[a].totalQuantity
+                );
+                
+                log(`📊 将显示 ${sortedCategories.length} 个分类的统计`, 'success');
+                
+                sortedCategories.forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'card mb-3';
+                    
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'card-header d-flex justify-content-between';
+                    headerDiv.innerHTML = `
+                        <h6 class="mb-0">${category}</h6>
+                        <span class="badge bg-primary">${categoryStats[category].totalQuantity} 份</span>
+                    `;
+                    
+                    const bodyDiv = document.createElement('div');
+                    bodyDiv.className = 'card-body p-2';
+                    
+                    const sortedItems = Object.keys(categoryStats[category].items).sort((a, b) => 
+                        categoryStats[category].items[b] - categoryStats[category].items[a]
+                    );
+                    
+                    sortedItems.forEach(itemName => {
+                        const quantity = categoryStats[category].items[itemName];
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'd-flex justify-content-between';
+                        itemDiv.innerHTML = `
+                            <span>${itemName}</span>
+                            <span class="badge bg-secondary">${quantity} 份</span>
+                        `;
+                        bodyDiv.appendChild(itemDiv);
+                    });
+                    
+                    categoryDiv.appendChild(headerDiv);
+                    categoryDiv.appendChild(bodyDiv);
+                    statsPreview.appendChild(categoryDiv);
+                });
+                
+                log('✅ 统计结果显示完成', 'success');
+            };
+            
+            // 调用统计加载
+            loadOrderStatistics();
+        }
+
+        function testCategoryCalculation() {
+            log('🧮 开始测试分类计算功能...', 'info');
+            
+            if (testOrders.length === 0) {
+                log('⚠️ 没有订单数据可供测试', 'warning');
+                return;
+            }
+            
+            try {
+                // 手动计算统计以验证逻辑
+                const manualStats = {};
+                const activeOrders = testOrders.filter(order => 
+                    order.status === 'new' || order.status === 'processing'
+                );
+                
+                log(`🔍 处理 ${activeOrders.length} 个活跃订单`, 'info');
+                
+                activeOrders.forEach((order, orderIndex) => {
+                    if (!order.items || !Array.isArray(order.items)) {
+                        log(`⚠️ 订单 ${order.id} 没有有效的items数据`, 'warning');
+                        return;
+                    }
+                    
+                    order.items.forEach((item, itemIndex) => {
+                        const category = item.category || '未分类';
+                        const itemName = item.name || '未知商品';
+                        const quantity = parseInt(item.quantity) || 1;
+                        
+                        log(`📝 处理: ${itemName} (${category}) x${quantity}`, 'info');
+                        
+                        if (!manualStats[category]) {
+                            manualStats[category] = {
+                                totalQuantity: 0,
+                                items: {}
+                            };
+                        }
+                        
+                        manualStats[category].totalQuantity += quantity;
+                        
+                        if (!manualStats[category].items[itemName]) {
+                            manualStats[category].items[itemName] = 0;
+                        }
+                        
+                        manualStats[category].items[itemName] += quantity;
+                    });
+                });
+                
+                log('✅ 手动计算完成', 'success');
+                log(`📊 统计结果: ${JSON.stringify(manualStats, null, 2)}`, 'info');
+                
+                // 显示计算结果
+                const statsPreview = document.getElementById('stats-preview');
+                statsPreview.innerHTML = '<h6>手动计算结果:</h6><pre>' + JSON.stringify(manualStats, null, 2) + '</pre>';
+                
+            } catch (error) {
+                log(`❌ 分类计算测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testFilter() {
+            const filterValue = document.getElementById('test-filter').value;
+            log(`🔍 测试筛选器: ${filterValue}`, 'info');
+            
+            if (typeof filterOrderStatsByStatus === 'function') {
+                // 模拟筛选器元素
+                const mockFilter = document.createElement('select');
+                mockFilter.id = 'order-stats-filter';
+                mockFilter.value = filterValue;
+                
+                // 临时添加到页面
+                document.body.appendChild(mockFilter);
+                
+                try {
+                    filterOrderStatsByStatus();
+                    log('✅ 筛选器测试完成', 'success');
+                } catch (error) {
+                    log(`❌ 筛选器测试失败: ${error.message}`, 'error');
+                } finally {
+                    // 移除临时元素
+                    document.body.removeChild(mockFilter);
+                }
+            } else {
+                log('❌ filterOrderStatsByStatus 函数不存在', 'error');
+            }
+        }
+
+        function simulateOrderData() {
+            log('🎭 创建模拟订单数据...', 'info');
+            
+            const mockOrders = [
+                {
+                    id: 'test-001',
+                    status: 'new',
+                    items: [
+                        { name: '经典卤肉饭', category: '主食', quantity: 2 },
+                        { name: '卤蛋', category: '小吃', quantity: 1 }
+                    ]
+                },
+                {
+                    id: 'test-002',
+                    status: 'processing',
+                    items: [
+                        { name: '素食套餐', category: '素食', quantity: 1 },
+                        { name: '排骨饭', category: '主食', quantity: 1 }
+                    ]
+                }
+            ];
+            
+            // 暂时替换订单数据
+            testOrders = mockOrders;
+            
+            log('✅ 模拟数据创建完成，可以开始测试', 'success');
+            
+            // 更新显示
+            setStatus('orders-count', testOrders.length.toString(), 'ok');
+            setStatus('active-orders-count', '2', 'ok');
+            
+            analyzeOrderStatus();
+            showRecentOrders();
+        }
+
+        // 页面加载完成后自动运行基础检查
+        window.addEventListener('load', function() {
+            setTimeout(runBasicTest, 1000);
+        });
+    </script>
+</body>
+</html> 
