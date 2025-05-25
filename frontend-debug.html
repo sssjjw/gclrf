@@ -129,7 +129,7 @@
     <!-- 配置文件 -->
     <script src="js/firebase-config.js"></script>
     <script src="js/firebase-data.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/app-fixed.js"></script>
 
     <script>
         function logDebug(message, type = 'info') {
@@ -308,12 +308,16 @@
                 logDebug(`📋 商品ID: ${itemId}`, 'info');
                 
                 // 检查事件监听器
-                const hasEventListener = testButton.onclick || testButton.addEventListener;
+                const hasEventListener = testButton.onclick || testButton.click;
                 logDebug(`🎯 按钮事件状态: ${hasEventListener ? '已绑定' : '未绑定'}`, hasEventListener ? 'success' : 'warning');
                 
                 // 模拟点击
-                testButton.click();
-                logDebug('✅ 模拟点击完成', 'success');
+                try {
+                    testButton.click();
+                    logDebug('✅ 模拟点击完成', 'success');
+                } catch (error) {
+                    logDebug(`❌ 模拟点击失败: ${error.message}`, 'error');
+                }
             } else {
                 logDebug('❌ 找不到测试按钮', 'error');
             }
@@ -337,33 +341,46 @@
         // 绑定测试按钮事件
         document.addEventListener('DOMContentLoaded', function() {
             // 为测试按钮绑定事件
-            document.querySelector('.test-btn').addEventListener('click', function() {
-                const itemId = this.getAttribute('data-id');
-                logDebug(`🔘 测试按钮被点击，商品ID: ${itemId}`, 'event');
-                
-                if (typeof addToCart === 'function') {
-                    // 这里不能直接调用 addToCart，因为它期望的是数字ID，而我们的是字符串
-                    // 所以我们手动添加到购物车
-                    if (typeof cart !== 'undefined') {
-                        cart.push({
-                            id: itemId,
-                            name: '测试商品',
-                            price: 10.00,
-                            quantity: 1
-                        });
-                        
-                        logDebug('✅ 测试商品已添加到购物车', 'success');
-                        updateCartStatus();
-                        
-                        // 更新按钮状态
-                        this.innerHTML = '<i class="bi bi-check2"></i> 已加入购物车';
-                        this.classList.add('btn-success');
-                        this.classList.remove('btn-primary');
+            const testButton = document.querySelector('.test-btn');
+            if (testButton) {
+                testButton.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-id');
+                    logDebug(`🔘 测试按钮被点击，商品ID: ${itemId}`, 'info');
+                    
+                    if (typeof addToCart === 'function') {
+                        // 这里不能直接调用 addToCart，因为它期望的是数字ID，而我们的是字符串
+                        // 所以我们手动添加到购物车
+                        if (typeof cart !== 'undefined') {
+                            cart.push({
+                                id: itemId,
+                                name: '测试商品',
+                                price: 10.00,
+                                quantity: 1
+                            });
+                            
+                            logDebug('✅ 测试商品已添加到购物车', 'success');
+                            updateCartStatus();
+                            
+                            // 安全地更新按钮状态
+                            try {
+                                this.innerHTML = '✅ 已加入购物车';
+                                this.classList.add('btn-success');
+                                this.classList.remove('btn-primary');
+                                logDebug('✅ 按钮状态已更新', 'success');
+                            } catch (error) {
+                                logDebug(`⚠️ 按钮状态更新失败: ${error.message}`, 'warning');
+                            }
+                        } else {
+                            logDebug('❌ cart 变量不存在', 'error');
+                        }
+                    } else {
+                        logDebug('❌ addToCart 函数不存在', 'error');
                     }
-                } else {
-                    logDebug('❌ addToCart 函数不存在', 'error');
-                }
-            });
+                });
+                logDebug('✅ 测试按钮事件已绑定', 'success');
+            } else {
+                logDebug('❌ 找不到测试按钮', 'error');
+            }
         });
 
         // 页面加载完成后执行检查
