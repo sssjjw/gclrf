@@ -718,7 +718,7 @@ function saveDiscountRule() {
     // 简化实现
 }
 
-// 导出主要函数到全局作用域（用于HTML中的onclick）
+// 导出主要函数到全局作用域（用于HTML中的onclick和诊断工具检测）
 window.updateOrderStatus = updateOrderStatus;
 window.editMenuItem = editMenuItem;
 window.deleteMenuItem = deleteMenuItem;
@@ -728,5 +728,14 @@ window.saveMenuItem = saveMenuItem;
 window.saveMenuDescription = saveMenuDescription;
 window.showAddDiscountRuleModal = showAddDiscountRuleModal;
 window.saveDiscountRule = saveDiscountRule;
+
+// 导出诊断工具需要检测的函数
+window.loadOrders = loadOrders;
+window.loadMenuItems = loadMenuItems;
+window.loadMenuDescription = loadMenuDescription;
+window.loadDiscountRules = loadDiscountRules;
+window.filterOrders = filterOrders;
+window.displayOrders = displayOrders;
+window.displayMenuItems = displayMenuItems;
 
 console.log('📝 admin-fixed.js 加载完成'); 
