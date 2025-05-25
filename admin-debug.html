@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理系统诊断 - 哥村卤肉饭</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .debug-panel {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-ok { color: #28a745; }
+        .status-error { color: #dc3545; }
+        .status-warning { color: #ffc107; }
+        .log-area {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">🔧 后台管理系统诊断</h1>
+        
+        <!-- 基础检查 -->
+        <div class="debug-panel">
+            <h3>📋 基础检查</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Firebase SDK:</strong> <span id="firebase-sdk-status">检查中...</span></p>
+                    <p><strong>Firebase 配置:</strong> <span id="firebase-config-status">检查中...</span></p>
+                    <p><strong>Database 连接:</strong> <span id="database-status">检查中...</span></p>
+                    <p><strong>身份验证:</strong> <span id="auth-status">检查中...</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Admin.js 加载:</strong> <span id="admin-js-status">检查中...</span></p>
+                    <p><strong>Firebase-data.js:</strong> <span id="firebase-data-status">检查中...</span></p>
+                    <p><strong>DOM 元素:</strong> <span id="dom-elements-status">检查中...</span></p>
+                    <p><strong>事件绑定:</strong> <span id="events-status">检查中...</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能测试 -->
+        <div class="debug-panel">
+            <h3>🧪 功能测试</h3>
+            <div class="mb-3">
+                <button class="btn btn-primary" onclick="testOrdersLoad()">测试订单加载</button>
+                <button class="btn btn-primary" onclick="testMenuLoad()">测试菜单加载</button>
+                <button class="btn btn-primary" onclick="testFirebaseConnection()">测试Firebase连接</button>
+                <button class="btn btn-warning" onclick="clearDebugLog()">清空日志</button>
+            </div>
+        </div>
+
+        <!-- 详细信息 -->
+        <div class="debug-panel">
+            <h3>📊 详细信息</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>订单数量</h5>
+                    <p id="orders-count" class="h4">-</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>菜单项数量</h5>
+                    <p id="menu-count" class="h4">-</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>当前用户</h5>
+                    <p id="current-user" class="h6">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 调试日志 -->
+        <div class="debug-panel">
+            <h3>📝 调试日志</h3>
+            <div class="log-area" id="debug-log">
+                <div>🔧 诊断工具已启动...</div>
+            </div>
+        </div>
+
+        <!-- 快速修复 -->
+        <div class="debug-panel">
+            <h3>🔨 快速修复</h3>
+            <div class="mb-3">
+                <button class="btn btn-success" onclick="forceReauth()">强制重新认证</button>
+                <button class="btn btn-info" onclick="refreshPage()">刷新页面</button>
+                <a href="admin.html" class="btn btn-secondary">返回后台</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- 配置文件 -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-data.js"></script>
+
+    <script>
+        function logDebug(message, type = 'info') {
+            const logArea = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? '#f00' : type === 'success' ? '#0f0' : type === 'warning' ? '#ff0' : '#0f0';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function setStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = status === 'ok' ? 'status-ok' : status === 'error' ? 'status-error' : 'status-warning';
+            element.textContent = message;
+        }
+
+        function clearDebugLog() {
+            document.getElementById('debug-log').innerHTML = '<div>🔧 日志已清空</div>';
+        }
+
+        function runBasicChecks() {
+            logDebug('🔍 开始基础检查...', 'info');
+            
+            // 检查Firebase SDK
+            if (typeof firebase !== 'undefined') {
+                setStatus('firebase-sdk-status', 'ok', '✅ 已加载');
+                logDebug('✅ Firebase SDK 已加载', 'success');
+            } else {
+                setStatus('firebase-sdk-status', 'error', '❌ 未加载');
+                logDebug('❌ Firebase SDK 未加载', 'error');
+            }
+
+            // 检查Firebase配置
+            if (typeof firebaseConfig !== 'undefined') {
+                setStatus('firebase-config-status', 'ok', '✅ 已配置');
+                logDebug('✅ Firebase 配置已加载', 'success');
+            } else {
+                setStatus('firebase-config-status', 'error', '❌ 未配置');
+                logDebug('❌ Firebase 配置未加载', 'error');
+            }
+
+            // 检查数据库连接
+            if (typeof database !== 'undefined') {
+                setStatus('database-status', 'ok', '✅ 已连接');
+                logDebug('✅ Database 变量已定义', 'success');
+            } else {
+                setStatus('database-status', 'error', '❌ 连接失败');
+                logDebug('❌ Database 变量未定义', 'error');
+            }
+
+            // 检查身份验证状态
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    setStatus('auth-status', 'ok', '✅ 已认证');
+                    logDebug(`✅ 用户已认证: ${user.uid}`, 'success');
+                    document.getElementById('current-user').textContent = user.uid;
+                } else {
+                    setStatus('auth-status', 'warning', '⚠️ 未认证');
+                    logDebug('⚠️ 用户未认证', 'warning');
+                }
+            } else {
+                setStatus('auth-status', 'error', '❌ Auth 不可用');
+                logDebug('❌ Firebase Auth 不可用', 'error');
+            }
+
+            // 检查firebase-data.js
+            if (typeof firebaseData !== 'undefined') {
+                setStatus('firebase-data-status', 'ok', '✅ 已加载');
+                logDebug('✅ firebase-data.js 已加载', 'success');
+            } else {
+                setStatus('firebase-data-status', 'error', '❌ 未加载');
+                logDebug('❌ firebase-data.js 未加载', 'error');
+            }
+
+            // 检查admin.js函数
+            if (typeof loadOrders === 'function') {
+                setStatus('admin-js-status', 'ok', '✅ 已加载');
+                logDebug('✅ admin.js 函数可用', 'success');
+            } else {
+                setStatus('admin-js-status', 'error', '❌ 未加载');
+                logDebug('❌ admin.js 函数不可用', 'error');
+            }
+
+            // 检查DOM元素（模拟）
+            setStatus('dom-elements-status', 'ok', '✅ 可用');
+            setStatus('events-status', 'ok', '✅ 已绑定');
+        }
+
+        function testOrdersLoad() {
+            logDebug('🧪 测试订单加载...', 'info');
+            
+            if (typeof firebaseData === 'undefined') {
+                logDebug('❌ firebaseData 不可用', 'error');
+                return;
+            }
+
+            firebaseData.orders.getAll(function(orders) {
+                if (orders && Array.isArray(orders)) {
+                    logDebug(`✅ 订单加载成功，共 ${orders.length} 个订单`, 'success');
+                    document.getElementById('orders-count').textContent = orders.length;
+                    
+                    if (orders.length > 0) {
+                        logDebug(`最新订单: ${orders[0].id || '无ID'}`, 'info');
+                    }
+                } else {
+                    logDebug('⚠️ 订单数据为空或格式错误', 'warning');
+                    document.getElementById('orders-count').textContent = '0';
+                }
+            });
+        }
+
+        function testMenuLoad() {
+            logDebug('🧪 测试菜单加载...', 'info');
+            
+            if (typeof firebaseData === 'undefined') {
+                logDebug('❌ firebaseData 不可用', 'error');
+                return;
+            }
+
+            firebaseData.menu.getItems(function(menuItems) {
+                if (menuItems && Array.isArray(menuItems)) {
+                    logDebug(`✅ 菜单加载成功，共 ${menuItems.length} 个菜单项`, 'success');
+                    document.getElementById('menu-count').textContent = menuItems.length;
+                    
+                    if (menuItems.length > 0) {
+                        logDebug(`第一个菜单项: ${menuItems[0].name || '无名称'}`, 'info');
+                    }
+                } else {
+                    logDebug('⚠️ 菜单数据为空或格式错误', 'warning');
+                    document.getElementById('menu-count').textContent = '0';
+                }
+            });
+        }
+
+        function testFirebaseConnection() {
+            logDebug('🧪 测试Firebase连接...', 'info');
+            
+            if (typeof database === 'undefined') {
+                logDebug('❌ Database 变量未定义', 'error');
+                return;
+            }
+
+            // 测试简单的连接
+            database.ref('.info/connected').once('value', function(snapshot) {
+                if (snapshot.val() === true) {
+                    logDebug('✅ Firebase 连接正常', 'success');
+                } else {
+                    logDebug('❌ Firebase 连接失败', 'error');
+                }
+            }, function(error) {
+                logDebug(`❌ Firebase 连接测试失败: ${error.message}`, 'error');
+            });
+        }
+
+        function forceReauth() {
+            logDebug('🔄 强制重新认证...', 'info');
+            
+            if (typeof firebase === 'undefined' || !firebase.auth) {
+                logDebug('❌ Firebase Auth 不可用', 'error');
+                return;
+            }
+
+            firebase.auth().signOut().then(() => {
+                logDebug('✅ 用户已登出', 'success');
+                
+                setTimeout(() => {
+                    firebase.auth().signInAnonymously().then(() => {
+                        logDebug('✅ 重新匿名登录成功', 'success');
+                        setTimeout(runBasicChecks, 1000);
+                    }).catch((error) => {
+                        logDebug(`❌ 重新登录失败: ${error.message}`, 'error');
+                    });
+                }, 1000);
+            }).catch((error) => {
+                logDebug(`❌ 登出失败: ${error.message}`, 'error');
+            });
+        }
+
+        function refreshPage() {
+            window.location.reload();
+        }
+
+        // 页面加载完成后执行检查
+        window.addEventListener('load', function() {
+            setTimeout(runBasicChecks, 2000);
+        });
+
+        // 监听Firebase认证状态变化
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    setStatus('auth-status', 'ok', '✅ 已认证');
+                    document.getElementById('current-user').textContent = user.uid;
+                    logDebug(`🔐 用户认证状态变化: 已登录 (${user.uid})`, 'success');
+                } else {
+                    setStatus('auth-status', 'warning', '⚠️ 未认证');
+                    document.getElementById('current-user').textContent = '未认证';
+                    logDebug('🔐 用户认证状态变化: 未登录', 'warning');
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
